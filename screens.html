@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload Class Schedule – Screen Grid</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&family=Source+Serif+Pro:wght@600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #1a1a2e;
+  background-image: radial-gradient(ellipse at 30% 20%, #16213e 0%, #0f3460 50%, #1a1a2e 100%);
+  padding: 48px;
+  font-family: 'Source Sans Pro', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 248px);
+  gap: 36px 28px;
+}
+
+.screen-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.screen-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.45);
+  text-align: center;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ── Screen shell ── */
+.screen {
+  width: 248px;
+  height: 595px;
+  border-radius: 40px;
+  overflow: hidden;
+  position: relative;
+  background: #182B49;
+  flex-shrink: 0;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.55);
+}
+
+/* Status bar */
+.sb {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 36px;
+  background: #182B49;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0 0;
+  z-index: 10;
+}
+.di {
+  position: absolute;
+  top: 8px; left: 50%;
+  transform: translateX(-50%);
+  width: 82px; height: 24px;
+  background: #000;
+  border-radius: 12px;
+  z-index: 11;
+}
+.st { color: #fff; font-size: 10px; font-weight: 600; font-family: -apple-system, sans-serif; }
+.si { display: flex; align-items: center; gap: 4px; }
+.si svg { fill: white; opacity: 0.9; }
+
+/* Scroll area */
+.sa {
+  position: absolute;
+  top: 36px; left: 0; right: 0;
+  height: 505px;
+  overflow: hidden;
+}
+
+/* Profile scaler */
+.ps {
+  position: absolute;
+  left: 0;
+  width: 248px;
+}
+.pw {
+  width: 1499px;
+  transform-origin: top left;
+  transform: scale(0.1655);
+}
+
+/* Tab bar */
+.tb {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 54px;
+  overflow: hidden;
+  z-index: 15;
+}
+.tbi {
+  width: 1499px;
+  height: 329px;
+  transform-origin: top left;
+  transform: scale(0.1655);
+  position: absolute;
+  top: 0; left: 0;
+}
+
+/* Overlay */
+.ov {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+}
+.ov.ctr { align-items: center; justify-content: center; }
+
+/* Sheet */
+.sheet {
+  width: 100%;
+  background: #fff;
+  border-radius: 24px 24px 0 0;
+  padding: 12px 12px 16px;
+  overflow: hidden;
+}
+.dh { width: 28px; height: 3px; background: #d1d1d6; border-radius: 2px; margin: 0 auto 12px; }
+
+/* Modal */
+.modal {
+  width: 88%;
+  background: #fff;
+  border-radius: 20px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+/* Overlay content */
+.ov-hd { overflow: hidden; margin-bottom: 10px; }
+.ov-title { font-size: 13px; font-weight: 700; color: #182B49; }
+.ov-close { float: right; font-size: 11px; color: #aaa; background: #f0f0f0; border-radius: 50%; padding: 2px 5px; line-height: 1.4; }
+
+.ai-hint {
+  background: #f5f5f5; border-radius: 6px; padding: 6px 8px;
+  font-size: 8.5px; color: #555; margin-bottom: 8px;
+  display: flex; align-items: flex-start; gap: 5px;
+}
+.ai-hint .aic { font-size: 10px; flex-shrink: 0; line-height: 1.4; }
+.ai-hint .ait { flex: 1; min-width: 0; line-height: 1.4; }
+
+.uopt {
+  display: flex; align-items: center; gap: 8px;
+  border: 1px solid #e8e8e8; border-radius: 8px;
+  padding: 7px 8px; margin-bottom: 5px;
+}
+.uopt.sel { background: #fef6f2; border-color: #E67A46; }
+.uopt:last-child { margin-bottom: 0; }
+.oi { width: 26px; height: 26px; background: #f5f5f5; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+.ot { flex: 1; min-width: 0; }
+.ot h3 { font-size: 9px; font-weight: 700; color: #182B49; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ot p { font-size: 8px; color: #888; line-height: 1.3; }
+
+.sib { background: #f0f1f5; border-radius: 8px; padding: 6px 8px; margin-bottom: 8px; }
+.sil { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; font-size: 8px; color: #888; }
+.sip { background: #dde0ea; border-radius: 5px; height: 40px; display: flex; align-items: center; padding: 4px; gap: 3px; }
+
+.cc { border: 1px solid #e8e8e8; border-radius: 6px; padding: 6px 8px; margin-bottom: 5px; }
+.cc:last-of-type { margin-bottom: 0; }
+.cn { font-size: 9px; font-weight: 700; color: #182B49; margin-bottom: 2px; }
+.cd { font-size: 8px; color: #555; display: flex; align-items: center; gap: 3px; margin-bottom: 1px; }
+
+.ra { display: flex; gap: 6px; margin-top: 10px; }
+.bo { flex: 1; padding: 6px; border-radius: 6px; border: 1px solid #ddd; background: #fff; font-size: 9px; font-weight: 600; color: #182B49; text-align: center; }
+.bf { flex: 1; padding: 6px; border-radius: 6px; background: #E67A46; border: none; font-size: 9px; font-weight: 700; color: #fff; text-align: center; }
+
+.cs { margin-bottom: 8px; }
+.sl { font-size: 7.5px; font-weight: 700; color: #aaa; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 4px; }
+.fg { margin-bottom: 4px; }
+.fl { font-size: 7.5px; color: #888; margin-bottom: 2px; }
+.fi { width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 4px 6px; font-size: 8.5px; color: #333; font-family: inherit; background: #fff; }
+.dr { display: flex; gap: 2px; flex-wrap: wrap; margin-bottom: 4px; }
+.dc { padding: 2px 5px; border-radius: 3px; font-size: 7.5px; font-weight: 600; border: 1px solid #ddd; color: #555; background: #fff; }
+.dc.act { background: #182B49; color: #fff; border-color: #182B49; }
+.tr { display: flex; gap: 4px; }
+.tr .fg { flex: 1; min-width: 0; }
+.ed { height: 1px; background: #f0f0f0; margin: 6px 0; }
+.cb { width: 100%; padding: 7px; border-radius: 6px; background: #E67A46; border: none; font-size: 9px; font-weight: 700; color: #fff; margin-top: 8px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="grid">
+
+<!-- ═══════════════════════════════════ -->
+<!-- Shared HTML snippets via templates -->
+<!-- ═══════════════════════════════════ -->
+
+<!-- SCREEN 1 · Profile (base) -->
+<div class="screen-wrap">
+<div class="screen">
+  <div class="sb"><div class="di"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><span class="st">9:41</span></div><div style="width:82px;flex-shrink:0;"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><div class="si"><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><rect x="0" y="9" width="4" height="6" rx="1" fill="white" opacity="0.4"/><rect x="5.3" y="6" width="4" height="9" rx="1" fill="white" opacity="0.6"/><rect x="10.6" y="3" width="4" height="12" rx="1" fill="white" opacity="0.8"/><rect x="15.9" y="0" width="4" height="15" rx="1" fill="white"/></svg><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><path d="M10 12.5 a1.8 1.8 0 1 1 0.001 0 Z" fill="white"/><path d="M5.5 8.5 Q10 4.5 14.5 8.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.75"/><path d="M2.5 5.5 Q10 -0.5 17.5 5.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.55"/></svg><svg width="22" height="10" viewBox="0 0 32 15" fill="none"><rect x="0.75" y="0.75" width="27.5" height="13.5" rx="3.5" stroke="white" stroke-width="1.5" opacity="0.5"/><rect x="2.5" y="2.5" width="21" height="10" rx="2" fill="white"/><rect x="29" y="4.5" width="2.5" height="6" rx="1.2" fill="white" opacity="0.45"/></svg></div></div></div>
+  <div class="sa">
+    <div class="ps" style="top:-28px">
+      <div class="pw">
+        <div style="width:1499px;height:2929px;position:relative;background:#FAF8F5">
+          <div style="width:1499px;height:628px;left:0;top:0;position:absolute;background:#182B49;overflow:hidden">
+            <div style="width:672px;left:386px;top:297px;position:absolute;text-align:center;color:#FAF8F5;font-size:85px;font-family:'Source Serif Pro';font-weight:600;word-wrap:break-word">Bailey Thompson</div>
+            <div style="width:311px;left:386px;top:404px;position:absolute;text-align:center;color:#C4C4C4;font-size:45px;font-family:'Source Sans Pro';font-weight:600;word-wrap:break-word">Seventh College</div>
+            <div style="width:200px;height:200px;left:137px;top:274px;position:absolute;background:linear-gradient(0deg,#FFC9B3 0%,#FFD2C2 100%);overflow:hidden;border-radius:100px"><div style="width:137px;height:75px;left:31px;top:125px;position:absolute;background:linear-gradient(180deg,#1D0024 0%,#100014 100%)"></div><div style="width:111px;height:91px;left:47px;top:26px;position:absolute;background:linear-gradient(0deg,#E6864E 0%,#E67240 100%)"></div><div style="width:68px;height:77px;left:73px;top:60px;position:absolute;background:#FFDBC9"></div><div style="width:51px;height:24px;left:75px;top:125px;position:absolute;background:white"></div></div>
+          </div>
+          <div style="width:1499px;height:2378px;left:0;top:551px;position:absolute;overflow:hidden">
+            <div style="width:1285px;left:107px;top:0;position:absolute;flex-direction:column;justify-content:flex-start;align-items:flex-start;gap:44px;display:inline-flex">
+              <div style="align-self:stretch;height:418px;position:relative;background:white;box-shadow:0 5px 10px rgba(0,0,0,.25);overflow:hidden;border-radius:45px"><div style="left:54px;top:41px;position:absolute;color:#747678;font-size:50px;font-family:'Source Sans Pro';font-weight:600">Dinning Dollars</div><div style="left:54px;top:130px;position:absolute;color:#182B49;font-size:90px;font-family:'Source Sans Pro';font-weight:700">$847.50</div><div style="width:1176px;height:27px;left:54px;top:269px;position:absolute;background:#D9D9D9;border-radius:45px"></div><div style="width:817px;height:27px;left:54px;top:269px;position:absolute;background:#192A4B;border-top-left-radius:45px;border-bottom-left-radius:45px"></div><div style="left:54px;top:322px;position:absolute;color:#747678;font-size:45px">$352.50 spent of $1200.00 plan</div><div style="left:1049px;top:46px;position:absolute;color:#E67A46;font-size:45px;font-weight:700">History</div></div>
+              <div style="align-self:stretch;height:251px;position:relative;background:white;box-shadow:0 5px 10px rgba(0,0,0,.25);overflow:hidden;border-radius:45px"><div style="left:54px;top:41px;position:absolute;color:#747678;font-size:50px;font-weight:600">Triton Cash</div><div style="left:54px;top:117px;position:absolute;color:#182B49;font-size:75px;font-weight:600">$135.70</div><div style="width:281px;height:117px;left:939px;top:67px;position:absolute;background:#FAF8F5;border-radius:45px;border:2px solid #EAE6E1"></div><div style="left:986px;top:97px;position:absolute;color:#182B49;font-size:45px;font-weight:700">Add Fund</div></div>
+              <div style="align-self:stretch;height:301px;position:relative;background:white;box-shadow:0 5px 10px rgba(0,0,0,.25);overflow:hidden;border-radius:45px"><div style="left:258px;top:58px;position:absolute;color:#182B49;font-size:55px;font-weight:700">Class Schedule</div><div style="width:537px;left:258px;top:139px;position:absolute;color:#747678;font-size:45px;line-height:52px">Help us recommend nearby restaurants between classes</div><div style="width:241px;height:117px;left:979px;top:96px;position:absolute;background:#E67A46;border-radius:45px"></div><div style="left:1028px;top:126px;position:absolute;text-align:center;color:white;font-size:45px;font-weight:700">Upload</div><div style="width:150px;height:150px;left:54px;top:76px;position:absolute;background:#FECBB7;border-radius:45px"></div><div style="left:89px;top:111px;position:absolute;font-size:80px;line-height:1">📅</div></div>
+              <div style="align-self:stretch;height:254px;position:relative;background:white;box-shadow:0 5px 10px rgba(0,0,0,.25);overflow:hidden;border-radius:45px"><div style="left:258px;top:59px;position:absolute;color:#182B49;font-size:55px;font-weight:700">Payment Method</div><div style="left:258px;top:140px;position:absolute;color:#747678;font-size:45px">Dinning dollars</div><div style="width:150px;height:150px;left:54px;top:52px;position:absolute;background:#FECBB7;border-radius:45px"></div><div style="left:89px;top:87px;position:absolute;font-size:80px;line-height:1">💳</div><div style="left:1035px;top:99px;position:absolute;color:#E67A46;font-size:45px;font-weight:700">Manage</div></div>
+            </div>
+            <div style="width:1499px;height:864px;left:0;top:1471px;position:absolute;overflow:hidden">
+              <div style="left:105px;top:0;position:absolute;color:#747678;font-size:45px;font-weight:700;line-height:52px">SUPPORT &amp; MORE</div>
+              <div style="width:1285px;left:107px;top:95px;position:absolute;flex-direction:column;gap:44px;display:inline-flex">
+                <div style="align-self:stretch;height:210px;position:relative;background:white;box-shadow:0 5px 10px rgba(0,0,0,.25);overflow:hidden;border-radius:45px"><div style="left:53px;top:60px;position:absolute;font-size:80px;line-height:1">🎧</div><div style="left:176px;top:37px;position:absolute;color:#182B49;font-size:55px;font-weight:600">Dinning Support</div><div style="left:176px;top:119px;position:absolute;color:#747678;font-size:45px;line-height:52px">Report an issue or get help</div></div>
+                <div style="align-self:stretch;height:210px;position:relative;background:white;box-shadow:0 5px 10px rgba(0,0,0,.25);overflow:hidden;border-radius:45px"><div style="left:53px;top:60px;position:absolute;font-size:80px;line-height:1">🥗</div><div style="left:176px;top:37px;position:absolute;color:#182B49;font-size:55px;font-weight:600">Nutriton &amp; Allergens</div><div style="left:176px;top:119px;position:absolute;color:#747678;font-size:45px;line-height:52px">Dietary info for all menus</div></div>
+                <div style="align-self:stretch;height:210px;position:relative;background:white;box-shadow:0 5px 10px rgba(0,0,0,.25);overflow:hidden;border-radius:45px"><div style="left:53px;top:60px;position:absolute;font-size:80px;line-height:1">💼</div><div style="left:176px;top:37px;position:absolute;color:#182B49;font-size:55px;font-weight:600">Dinning Service Hiring</div><div style="left:176px;top:119px;position:absolute;color:#747678;font-size:45px;line-height:52px">Student position available</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tb"><div class="tbi"><div style="width:1499px;height:329px;position:relative"><div style="width:1499px;height:329px;left:0;top:0;position:absolute;background:#182B49"></div><div style="left:50%;top:40px;position:absolute;transform:translateX(-50%);justify-content:center;align-items:flex-end;gap:120px;display:inline-flex"><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 54 L55 22 L92 54" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M28 46 L28 88 Q28 91 31 91 L44 91 L44 70 Q44 67 47 67 L63 67 Q66 67 66 70 L66 91 L79 91 Q82 91 82 88 L82 46" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Home</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 18 C38 18 24 32 24 49 C24 64 40 80 55 93 C70 80 86 64 86 49 C86 32 72 18 55 18 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="55" cy="49" r="12" stroke="rgba(255,255,255,0.75)" stroke-width="6"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Map</div></div><div style="width:200px;height:200px;position:relative;flex-shrink:0;"><div style="width:282px;height:282px;left:-41px;top:-41px;position:absolute;background:#182B49;border-radius:9999px;"></div><div style="width:200px;height:200px;left:0;top:0;position:absolute;background:#FFCD00;border-radius:9999px;display:flex;align-items:center;justify-content:center;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 24 Q18 18 24 18 L86 18 Q92 18 92 24 L92 66 Q92 72 86 72 L42 72 L22 90 L22 72 L24 72 Q18 72 18 66 Z" stroke="#182B49" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="38" cy="45" r="6" fill="#182B49"/><circle cx="55" cy="45" r="6" fill="#182B49"/><circle cx="72" cy="45" r="6" fill="#182B49"/></svg></div></div><div style="width:130px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 14 L66 42 L96 42 L73 60 L82 88 L55 71 L28 88 L37 60 L14 42 L44 42 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Rewards</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><circle cx="55" cy="36" r="20" stroke="white" stroke-width="6"/><path d="M18 92 C18 73 35 58 55 58 C75 58 92 73 92 92" stroke="white" stroke-width="6" stroke-linecap="round"/></svg><div style="text-align:center;color:white;font-size:35px;font-family:Source Sans Pro;font-weight:600;">Profile</div></div></div></div></div></div>
+</div>
+<div class="screen-label">1 · Profile</div>
+</div>
+
+<!-- SCREEN 2 · Profile header -->
+<div class="screen-wrap">
+<div class="screen">
+  <div class="sb"><div class="di"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><span class="st">9:41</span></div><div style="width:82px;flex-shrink:0;"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><div class="si"><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><rect x="0" y="9" width="4" height="6" rx="1" fill="white" opacity="0.4"/><rect x="5.3" y="6" width="4" height="9" rx="1" fill="white" opacity="0.6"/><rect x="10.6" y="3" width="4" height="12" rx="1" fill="white" opacity="0.8"/><rect x="15.9" y="0" width="4" height="15" rx="1" fill="white"/></svg><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><path d="M10 12.5 a1.8 1.8 0 1 1 0.001 0 Z" fill="white"/><path d="M5.5 8.5 Q10 4.5 14.5 8.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.75"/><path d="M2.5 5.5 Q10 -0.5 17.5 5.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.55"/></svg><svg width="22" height="10" viewBox="0 0 32 15" fill="none"><rect x="0.75" y="0.75" width="27.5" height="13.5" rx="3.5" stroke="white" stroke-width="1.5" opacity="0.5"/><rect x="2.5" y="2.5" width="21" height="10" rx="2" fill="white"/><rect x="29" y="4.5" width="2.5" height="6" rx="1.2" fill="white" opacity="0.45"/></svg></div></div></div>
+  <div class="sa">
+    <div class="ps" style="top:0">
+      <div class="pw">
+        <div style="width:1499px;height:2929px;position:relative;background:#FAF8F5">
+          <div style="width:1499px;height:628px;left:0;top:0;position:absolute;background:#182B49;overflow:hidden">
+            <div style="width:672px;left:386px;top:297px;position:absolute;text-align:center;color:#FAF8F5;font-size:85px;font-family:'Source Serif Pro';font-weight:600">Bailey Thompson</div>
+            <div style="width:311px;left:386px;top:404px;position:absolute;text-align:center;color:#C4C4C4;font-size:45px;font-family:'Source Sans Pro';font-weight:600">Seventh College</div>
+            <div style="width:200px;height:200px;left:137px;top:274px;position:absolute;background:linear-gradient(0deg,#FFC9B3 0%,#FFD2C2 100%);overflow:hidden;border-radius:100px"><div style="width:137px;height:75px;left:31px;top:125px;position:absolute;background:linear-gradient(180deg,#1D0024 0%,#100014 100%)"></div><div style="width:111px;height:91px;left:47px;top:26px;position:absolute;background:linear-gradient(0deg,#E6864E 0%,#E67240 100%)"></div><div style="width:68px;height:77px;left:73px;top:60px;position:absolute;background:#FFDBC9"></div><div style="width:51px;height:24px;left:75px;top:125px;position:absolute;background:white"></div></div>
+          </div>
+          <div style="width:1499px;height:2378px;left:0;top:551px;position:absolute;overflow:hidden">
+            <div style="width:1285px;left:107px;top:0;position:absolute;flex-direction:column;justify-content:flex-start;align-items:flex-start;gap:44px;display:inline-flex">
+              <div style="align-self:stretch;height:418px;position:relative;background:white;box-shadow:0 5px 10px rgba(0,0,0,.25);overflow:hidden;border-radius:45px"><div style="left:54px;top:41px;position:absolute;color:#747678;font-size:50px;font-weight:600">Dinning Dollars</div><div style="left:54px;top:130px;position:absolute;color:#182B49;font-size:90px;font-weight:700">$847.50</div><div style="width:1176px;height:27px;left:54px;top:269px;position:absolute;background:#D9D9D9;border-radius:45px"></div><div style="width:817px;height:27px;left:54px;top:269px;position:absolute;background:#192A4B;border-top-left-radius:45px;border-bottom-left-radius:45px"></div><div style="left:54px;top:322px;position:absolute;color:#747678;font-size:45px">$352.50 spent of $1200.00 plan</div><div style="left:1049px;top:46px;position:absolute;color:#E67A46;font-size:45px;font-weight:700">History</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tb"><div class="tbi"><div style="width:1499px;height:329px;position:relative"><div style="width:1499px;height:329px;left:0;top:0;position:absolute;background:#182B49"></div><div style="left:50%;top:40px;position:absolute;transform:translateX(-50%);justify-content:center;align-items:flex-end;gap:120px;display:inline-flex"><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 54 L55 22 L92 54" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M28 46 L28 88 Q28 91 31 91 L44 91 L44 70 Q44 67 47 67 L63 67 Q66 67 66 70 L66 91 L79 91 Q82 91 82 88 L82 46" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Home</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 18 C38 18 24 32 24 49 C24 64 40 80 55 93 C70 80 86 64 86 49 C86 32 72 18 55 18 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="55" cy="49" r="12" stroke="rgba(255,255,255,0.75)" stroke-width="6"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Map</div></div><div style="width:200px;height:200px;position:relative;flex-shrink:0;"><div style="width:282px;height:282px;left:-41px;top:-41px;position:absolute;background:#182B49;border-radius:9999px;"></div><div style="width:200px;height:200px;left:0;top:0;position:absolute;background:#FFCD00;border-radius:9999px;display:flex;align-items:center;justify-content:center;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 24 Q18 18 24 18 L86 18 Q92 18 92 24 L92 66 Q92 72 86 72 L42 72 L22 90 L22 72 L24 72 Q18 72 18 66 Z" stroke="#182B49" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="38" cy="45" r="6" fill="#182B49"/><circle cx="55" cy="45" r="6" fill="#182B49"/><circle cx="72" cy="45" r="6" fill="#182B49"/></svg></div></div><div style="width:130px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 14 L66 42 L96 42 L73 60 L82 88 L55 71 L28 88 L37 60 L14 42 L44 42 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Rewards</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><circle cx="55" cy="36" r="20" stroke="white" stroke-width="6"/><path d="M18 92 C18 73 35 58 55 58 C75 58 92 73 92 92" stroke="white" stroke-width="6" stroke-linecap="round"/></svg><div style="text-align:center;color:white;font-size:35px;font-family:Source Sans Pro;font-weight:600;">Profile</div></div></div></div></div></div>
+</div>
+<div class="screen-label">2 · Profile header</div>
+</div>
+
+<!-- SCREEN 3 · Upload options sheet -->
+<div class="screen-wrap">
+<div class="screen">
+  <div class="sb"><div class="di"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><span class="st">9:41</span></div><div style="width:82px;flex-shrink:0;"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><div class="si"><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><rect x="0" y="9" width="4" height="6" rx="1" fill="white" opacity="0.4"/><rect x="5.3" y="6" width="4" height="9" rx="1" fill="white" opacity="0.6"/><rect x="10.6" y="3" width="4" height="12" rx="1" fill="white" opacity="0.8"/><rect x="15.9" y="0" width="4" height="15" rx="1" fill="white"/></svg><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><path d="M10 12.5 a1.8 1.8 0 1 1 0.001 0 Z" fill="white"/><path d="M5.5 8.5 Q10 4.5 14.5 8.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.75"/><path d="M2.5 5.5 Q10 -0.5 17.5 5.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.55"/></svg><svg width="22" height="10" viewBox="0 0 32 15" fill="none"><rect x="0.75" y="0.75" width="27.5" height="13.5" rx="3.5" stroke="white" stroke-width="1.5" opacity="0.5"/><rect x="2.5" y="2.5" width="21" height="10" rx="2" fill="white"/><rect x="29" y="4.5" width="2.5" height="6" rx="1.2" fill="white" opacity="0.45"/></svg></div></div></div>
+  <div class="sa">
+    <div class="ps" style="top:-28px">
+      <div class="pw">
+        <div style="width:1499px;height:2929px;position:relative;background:#FAF8F5">
+          <div style="width:1499px;height:628px;left:0;top:0;position:absolute;background:#182B49;overflow:hidden"><div style="width:672px;left:386px;top:297px;position:absolute;text-align:center;color:#FAF8F5;font-size:85px;font-family:'Source Serif Pro';font-weight:600">Bailey Thompson</div><div style="width:200px;height:200px;left:137px;top:274px;position:absolute;background:linear-gradient(0deg,#FFC9B3,#FFD2C2);overflow:hidden;border-radius:100px"><div style="width:111px;height:91px;left:47px;top:26px;position:absolute;background:linear-gradient(0deg,#E6864E,#E67240)"></div><div style="width:68px;height:77px;left:73px;top:60px;position:absolute;background:#FFDBC9"></div></div></div>
+          <div style="width:1499px;height:2378px;left:0;top:551px;position:absolute;overflow:hidden"><div style="width:1285px;left:107px;top:0;position:absolute;flex-direction:column;gap:44px;display:inline-flex"><div style="align-self:stretch;height:418px;position:relative;background:white;box-shadow:0 5px 10px rgba(0,0,0,.25);border-radius:45px"></div><div style="align-self:stretch;height:251px;position:relative;background:white;box-shadow:0 5px 10px rgba(0,0,0,.25);border-radius:45px"></div><div style="align-self:stretch;height:301px;position:relative;background:white;box-shadow:0 5px 10px rgba(0,0,0,.25);overflow:hidden;border-radius:45px"><div style="width:241px;height:117px;left:979px;top:96px;position:absolute;background:#E67A46;border-radius:45px"></div><div style="left:1028px;top:126px;position:absolute;text-align:center;color:white;font-size:45px;font-weight:700">Upload</div></div></div></div>
+        </div>
+      </div>
+    </div>
+    <!-- Overlay: upload sheet -->
+    <div class="ov">
+      <div class="sheet">
+        <div class="dh"></div>
+        <div class="ov-hd"><span class="ov-close">✕</span><div class="ov-title">Upload Class Schedule</div></div>
+        <div class="ai-hint"><span class="aic">✦</span><span class="ait">AI reads your schedule and turns it into time blocks automatically.</span></div>
+        <div class="uopt"><div class="oi">🔱</div><div class="ot"><h3>Link to UC San Diego app</h3><p>Import the course schedule directly from the UC San Diego app</p></div></div>
+        <div class="uopt"><div class="oi">📁</div><div class="ot"><h3>Upload from files</h3><p>Choose a screenshot or PDF from your phone</p></div></div>
+        <div class="uopt"><div class="oi">📷</div><div class="ot"><h3>Take a photo</h3><p>Snap a picture of a printed schedule</p></div></div>
+        <div class="uopt"><div class="oi">✏️</div><div class="ot"><h3>Enter manually</h3><p>Type in your classes and times</p></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="tb"><div class="tbi"><div style="width:1499px;height:329px;position:relative"><div style="width:1499px;height:329px;left:0;top:0;position:absolute;background:#182B49"></div><div style="left:50%;top:40px;position:absolute;transform:translateX(-50%);justify-content:center;align-items:flex-end;gap:120px;display:inline-flex"><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 54 L55 22 L92 54" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M28 46 L28 88 Q28 91 31 91 L44 91 L44 70 Q44 67 47 67 L63 67 Q66 67 66 70 L66 91 L79 91 Q82 91 82 88 L82 46" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Home</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 18 C38 18 24 32 24 49 C24 64 40 80 55 93 C70 80 86 64 86 49 C86 32 72 18 55 18 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="55" cy="49" r="12" stroke="rgba(255,255,255,0.75)" stroke-width="6"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Map</div></div><div style="width:200px;height:200px;position:relative;flex-shrink:0;"><div style="width:282px;height:282px;left:-41px;top:-41px;position:absolute;background:#182B49;border-radius:9999px;"></div><div style="width:200px;height:200px;left:0;top:0;position:absolute;background:#FFCD00;border-radius:9999px;display:flex;align-items:center;justify-content:center;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 24 Q18 18 24 18 L86 18 Q92 18 92 24 L92 66 Q92 72 86 72 L42 72 L22 90 L22 72 L24 72 Q18 72 18 66 Z" stroke="#182B49" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="38" cy="45" r="6" fill="#182B49"/><circle cx="55" cy="45" r="6" fill="#182B49"/><circle cx="72" cy="45" r="6" fill="#182B49"/></svg></div></div><div style="width:130px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 14 L66 42 L96 42 L73 60 L82 88 L55 71 L28 88 L37 60 L14 42 L44 42 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Rewards</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><circle cx="55" cy="36" r="20" stroke="white" stroke-width="6"/><path d="M18 92 C18 73 35 58 55 58 C75 58 92 73 92 92" stroke="white" stroke-width="6" stroke-linecap="round"/></svg><div style="text-align:center;color:white;font-size:35px;font-family:Source Sans Pro;font-weight:600;">Profile</div></div></div></div></div></div>
+</div>
+<div class="screen-label">3 · Upload options</div>
+</div>
+
+<!-- SCREEN 4 · Upload – option selected -->
+<div class="screen-wrap">
+<div class="screen">
+  <div class="sb"><div class="di"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><span class="st">9:41</span></div><div style="width:82px;flex-shrink:0;"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><div class="si"><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><rect x="0" y="9" width="4" height="6" rx="1" fill="white" opacity="0.4"/><rect x="5.3" y="6" width="4" height="9" rx="1" fill="white" opacity="0.6"/><rect x="10.6" y="3" width="4" height="12" rx="1" fill="white" opacity="0.8"/><rect x="15.9" y="0" width="4" height="15" rx="1" fill="white"/></svg><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><path d="M10 12.5 a1.8 1.8 0 1 1 0.001 0 Z" fill="white"/><path d="M5.5 8.5 Q10 4.5 14.5 8.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.75"/><path d="M2.5 5.5 Q10 -0.5 17.5 5.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.55"/></svg><svg width="22" height="10" viewBox="0 0 32 15" fill="none"><rect x="0.75" y="0.75" width="27.5" height="13.5" rx="3.5" stroke="white" stroke-width="1.5" opacity="0.5"/><rect x="2.5" y="2.5" width="21" height="10" rx="2" fill="white"/><rect x="29" y="4.5" width="2.5" height="6" rx="1.2" fill="white" opacity="0.45"/></svg></div></div></div>
+  <div class="sa">
+    <div class="ps" style="top:-28px">
+      <div class="pw"><div style="width:1499px;height:2929px;position:relative;background:#FAF8F5"><div style="width:1499px;height:628px;left:0;top:0;position:absolute;background:#182B49;overflow:hidden"><div style="width:672px;left:386px;top:297px;position:absolute;text-align:center;color:#FAF8F5;font-size:85px;font-family:'Source Serif Pro';font-weight:600">Bailey Thompson</div></div><div style="width:1499px;height:2378px;left:0;top:551px;position:absolute;overflow:hidden"><div style="width:1285px;left:107px;top:0;position:absolute;flex-direction:column;gap:44px;display:inline-flex"><div style="align-self:stretch;height:418px;position:relative;background:white;box-shadow:0 5px 10px rgba(0,0,0,.25);border-radius:45px"></div><div style="align-self:stretch;height:251px;position:relative;background:white;box-shadow:0 5px 10px rgba(0,0,0,.25);border-radius:45px"></div></div></div></div></div>
+    </div>
+    <div class="ov">
+      <div class="sheet">
+        <div class="dh"></div>
+        <div class="ov-hd"><span class="ov-close">✕</span><div class="ov-title">Upload Class Schedule</div></div>
+        <div class="ai-hint"><span class="aic">✦</span><span class="ait">AI reads your schedule and turns it into time blocks automatically.</span></div>
+        <div class="uopt sel"><div class="oi">🔱</div><div class="ot"><h3>Link to UC San Diego app</h3><p>Import the course schedule directly from the UC San Diego app</p></div></div>
+        <div class="uopt"><div class="oi">📁</div><div class="ot"><h3>Upload from files</h3><p>Choose a screenshot or PDF from your phone</p></div></div>
+        <div class="uopt"><div class="oi">📷</div><div class="ot"><h3>Take a photo</h3><p>Snap a picture of a printed schedule</p></div></div>
+        <div class="uopt"><div class="oi">✏️</div><div class="ot"><h3>Enter manually</h3><p>Type in your classes and times</p></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="tb"><div class="tbi"><div style="width:1499px;height:329px;position:relative"><div style="width:1499px;height:329px;left:0;top:0;position:absolute;background:#182B49"></div><div style="left:50%;top:40px;position:absolute;transform:translateX(-50%);justify-content:center;align-items:flex-end;gap:120px;display:inline-flex"><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 54 L55 22 L92 54" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M28 46 L28 88 Q28 91 31 91 L44 91 L44 70 Q44 67 47 67 L63 67 Q66 67 66 70 L66 91 L79 91 Q82 91 82 88 L82 46" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Home</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 18 C38 18 24 32 24 49 C24 64 40 80 55 93 C70 80 86 64 86 49 C86 32 72 18 55 18 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="55" cy="49" r="12" stroke="rgba(255,255,255,0.75)" stroke-width="6"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Map</div></div><div style="width:200px;height:200px;position:relative;flex-shrink:0;"><div style="width:282px;height:282px;left:-41px;top:-41px;position:absolute;background:#182B49;border-radius:9999px;"></div><div style="width:200px;height:200px;left:0;top:0;position:absolute;background:#FFCD00;border-radius:9999px;display:flex;align-items:center;justify-content:center;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 24 Q18 18 24 18 L86 18 Q92 18 92 24 L92 66 Q92 72 86 72 L42 72 L22 90 L22 72 L24 72 Q18 72 18 66 Z" stroke="#182B49" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="38" cy="45" r="6" fill="#182B49"/><circle cx="55" cy="45" r="6" fill="#182B49"/><circle cx="72" cy="45" r="6" fill="#182B49"/></svg></div></div><div style="width:130px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 14 L66 42 L96 42 L73 60 L82 88 L55 71 L28 88 L37 60 L14 42 L44 42 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Rewards</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><circle cx="55" cy="36" r="20" stroke="white" stroke-width="6"/><path d="M18 92 C18 73 35 58 55 58 C75 58 92 73 92 92" stroke="white" stroke-width="6" stroke-linecap="round"/></svg><div style="text-align:center;color:white;font-size:35px;font-family:Source Sans Pro;font-weight:600;">Profile</div></div></div></div></div></div>
+</div>
+<div class="screen-label">4 · Option selected</div>
+</div>
+
+<!-- SCREEN 5 · Review & Confirm (top) -->
+<div class="screen-wrap">
+<div class="screen">
+  <div class="sb"><div class="di"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><span class="st">9:41</span></div><div style="width:82px;flex-shrink:0;"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><div class="si"><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><rect x="0" y="9" width="4" height="6" rx="1" fill="white" opacity="0.4"/><rect x="5.3" y="6" width="4" height="9" rx="1" fill="white" opacity="0.6"/><rect x="10.6" y="3" width="4" height="12" rx="1" fill="white" opacity="0.8"/><rect x="15.9" y="0" width="4" height="15" rx="1" fill="white"/></svg><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><path d="M10 12.5 a1.8 1.8 0 1 1 0.001 0 Z" fill="white"/><path d="M5.5 8.5 Q10 4.5 14.5 8.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.75"/><path d="M2.5 5.5 Q10 -0.5 17.5 5.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.55"/></svg><svg width="22" height="10" viewBox="0 0 32 15" fill="none"><rect x="0.75" y="0.75" width="27.5" height="13.5" rx="3.5" stroke="white" stroke-width="1.5" opacity="0.5"/><rect x="2.5" y="2.5" width="21" height="10" rx="2" fill="white"/><rect x="29" y="4.5" width="2.5" height="6" rx="1.2" fill="white" opacity="0.45"/></svg></div></div></div>
+  <div class="sa">
+    <div class="ps" style="top:-28px"><div class="pw"><div style="width:1499px;height:2929px;position:relative;background:#FAF8F5"><div style="width:1499px;height:628px;left:0;top:0;position:absolute;background:#182B49"></div></div></div></div>
+    <div class="ov ctr">
+      <div class="modal">
+        <div class="ov-hd"><span class="ov-close">✕</span><div class="ov-title">Review &amp; Confirm</div></div>
+        <div class="sib">
+          <div class="sil"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Source Image</div>
+          <div class="sip"><div style="width:6px;height:36px;background:#3a5a8c;border-radius:2px;flex-shrink:0"></div><div style="width:34px;background:#c8d0e0;border-radius:3px;padding:3px;display:flex;flex-direction:column;gap:2px"><div style="height:5px;background:#3a5a8c;border-radius:1px;opacity:.7"></div><div style="height:5px;background:#3a5a8c;border-radius:1px;opacity:.7"></div><div style="height:5px;background:#3a5a8c;border-radius:1px;opacity:.7;width:60%"></div><div style="height:4px"></div><div style="height:5px;background:#5a7aac;border-radius:1px;opacity:.6"></div><div style="height:5px;background:#5a7aac;border-radius:1px;opacity:.6;width:70%"></div></div></div>
+        </div>
+        <div class="cc"><div class="cn">COGS 107B</div><div class="cd">📍 MOS 0114</div><div class="cd">🕐 Th F @9:30 AM – 10:50 AM</div></div>
+        <div class="cc"><div class="cn">MATH 171B</div><div class="cd">📍 CENTR 113</div><div class="cd">🕐 M W F @3:00 PM – 3:50 PM</div></div>
+        <div class="cc"><div class="cn">COGS 187B</div><div class="cd">📍 CSB 002</div><div class="cd">🕐 Th F @2:00 PM – 3:20 PM</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="tb"><div class="tbi"><div style="width:1499px;height:329px;position:relative"><div style="width:1499px;height:329px;left:0;top:0;position:absolute;background:#182B49"></div><div style="left:50%;top:40px;position:absolute;transform:translateX(-50%);justify-content:center;align-items:flex-end;gap:120px;display:inline-flex"><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 54 L55 22 L92 54" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M28 46 L28 88 Q28 91 31 91 L44 91 L44 70 Q44 67 47 67 L63 67 Q66 67 66 70 L66 91 L79 91 Q82 91 82 88 L82 46" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Home</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 18 C38 18 24 32 24 49 C24 64 40 80 55 93 C70 80 86 64 86 49 C86 32 72 18 55 18 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="55" cy="49" r="12" stroke="rgba(255,255,255,0.75)" stroke-width="6"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Map</div></div><div style="width:200px;height:200px;position:relative;flex-shrink:0;"><div style="width:282px;height:282px;left:-41px;top:-41px;position:absolute;background:#182B49;border-radius:9999px;"></div><div style="width:200px;height:200px;left:0;top:0;position:absolute;background:#FFCD00;border-radius:9999px;display:flex;align-items:center;justify-content:center;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 24 Q18 18 24 18 L86 18 Q92 18 92 24 L92 66 Q92 72 86 72 L42 72 L22 90 L22 72 L24 72 Q18 72 18 66 Z" stroke="#182B49" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="38" cy="45" r="6" fill="#182B49"/><circle cx="55" cy="45" r="6" fill="#182B49"/><circle cx="72" cy="45" r="6" fill="#182B49"/></svg></div></div><div style="width:130px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 14 L66 42 L96 42 L73 60 L82 88 L55 71 L28 88 L37 60 L14 42 L44 42 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Rewards</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><circle cx="55" cy="36" r="20" stroke="white" stroke-width="6"/><path d="M18 92 C18 73 35 58 55 58 C75 58 92 73 92 92" stroke="white" stroke-width="6" stroke-linecap="round"/></svg><div style="text-align:center;color:white;font-size:35px;font-family:Source Sans Pro;font-weight:600;">Profile</div></div></div></div></div></div>
+</div>
+<div class="screen-label">5 · Review &amp; confirm</div>
+</div>
+
+<!-- SCREEN 6 · Review & Confirm (with actions) -->
+<div class="screen-wrap">
+<div class="screen">
+  <div class="sb"><div class="di"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><span class="st">9:41</span></div><div style="width:82px;flex-shrink:0;"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><div class="si"><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><rect x="0" y="9" width="4" height="6" rx="1" fill="white" opacity="0.4"/><rect x="5.3" y="6" width="4" height="9" rx="1" fill="white" opacity="0.6"/><rect x="10.6" y="3" width="4" height="12" rx="1" fill="white" opacity="0.8"/><rect x="15.9" y="0" width="4" height="15" rx="1" fill="white"/></svg><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><path d="M10 12.5 a1.8 1.8 0 1 1 0.001 0 Z" fill="white"/><path d="M5.5 8.5 Q10 4.5 14.5 8.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.75"/><path d="M2.5 5.5 Q10 -0.5 17.5 5.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.55"/></svg><svg width="22" height="10" viewBox="0 0 32 15" fill="none"><rect x="0.75" y="0.75" width="27.5" height="13.5" rx="3.5" stroke="white" stroke-width="1.5" opacity="0.5"/><rect x="2.5" y="2.5" width="21" height="10" rx="2" fill="white"/><rect x="29" y="4.5" width="2.5" height="6" rx="1.2" fill="white" opacity="0.45"/></svg></div></div></div>
+  <div class="sa">
+    <div class="ps" style="top:-28px"><div class="pw"><div style="width:1499px;height:2929px;position:relative;background:#FAF8F5"><div style="width:1499px;height:628px;left:0;top:0;position:absolute;background:#182B49"></div></div></div></div>
+    <div class="ov ctr">
+      <div class="modal">
+        <div class="ov-hd"><span class="ov-close">✕</span><div class="ov-title">Review &amp; Confirm</div></div>
+        <div class="cc"><div class="cn">COGS 107B</div><div class="cd">📍 MOS 0114</div><div class="cd">🕐 Th F @9:30 AM – 10:50 AM</div></div>
+        <div class="cc"><div class="cn">MATH 171B</div><div class="cd">📍 CENTR 113</div><div class="cd">🕐 M W F @3:00 PM – 3:50 PM</div></div>
+        <div class="cc"><div class="cn">COGS 187B</div><div class="cd">📍 CSB 002</div><div class="cd">🕐 Th F @2:00 PM – 3:20 PM</div></div>
+        <div class="cc"><div class="cn">MUS 17</div><div class="cd">📍 WLH 2001</div><div class="cd">🕐 W @6:30 PM – 9:00 PM</div></div>
+        <div class="ra"><div class="bo">Edit</div><div class="bf">Confirm</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="tb"><div class="tbi"><div style="width:1499px;height:329px;position:relative"><div style="width:1499px;height:329px;left:0;top:0;position:absolute;background:#182B49"></div><div style="left:50%;top:40px;position:absolute;transform:translateX(-50%);justify-content:center;align-items:flex-end;gap:120px;display:inline-flex"><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 54 L55 22 L92 54" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M28 46 L28 88 Q28 91 31 91 L44 91 L44 70 Q44 67 47 67 L63 67 Q66 67 66 70 L66 91 L79 91 Q82 91 82 88 L82 46" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Home</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 18 C38 18 24 32 24 49 C24 64 40 80 55 93 C70 80 86 64 86 49 C86 32 72 18 55 18 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="55" cy="49" r="12" stroke="rgba(255,255,255,0.75)" stroke-width="6"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Map</div></div><div style="width:200px;height:200px;position:relative;flex-shrink:0;"><div style="width:282px;height:282px;left:-41px;top:-41px;position:absolute;background:#182B49;border-radius:9999px;"></div><div style="width:200px;height:200px;left:0;top:0;position:absolute;background:#FFCD00;border-radius:9999px;display:flex;align-items:center;justify-content:center;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 24 Q18 18 24 18 L86 18 Q92 18 92 24 L92 66 Q92 72 86 72 L42 72 L22 90 L22 72 L24 72 Q18 72 18 66 Z" stroke="#182B49" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="38" cy="45" r="6" fill="#182B49"/><circle cx="55" cy="45" r="6" fill="#182B49"/><circle cx="72" cy="45" r="6" fill="#182B49"/></svg></div></div><div style="width:130px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 14 L66 42 L96 42 L73 60 L82 88 L55 71 L28 88 L37 60 L14 42 L44 42 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Rewards</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><circle cx="55" cy="36" r="20" stroke="white" stroke-width="6"/><path d="M18 92 C18 73 35 58 55 58 C75 58 92 73 92 92" stroke="white" stroke-width="6" stroke-linecap="round"/></svg><div style="text-align:center;color:white;font-size:35px;font-family:Source Sans Pro;font-weight:600;">Profile</div></div></div></div></div></div>
+</div>
+<div class="screen-label">6 · All classes</div>
+</div>
+
+<!-- SCREEN 7 · Edit Schedule – Class 1 & 2 -->
+<div class="screen-wrap">
+<div class="screen">
+  <div class="sb"><div class="di"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><span class="st">9:41</span></div><div style="width:82px;flex-shrink:0;"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><div class="si"><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><rect x="0" y="9" width="4" height="6" rx="1" fill="white" opacity="0.4"/><rect x="5.3" y="6" width="4" height="9" rx="1" fill="white" opacity="0.6"/><rect x="10.6" y="3" width="4" height="12" rx="1" fill="white" opacity="0.8"/><rect x="15.9" y="0" width="4" height="15" rx="1" fill="white"/></svg><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><path d="M10 12.5 a1.8 1.8 0 1 1 0.001 0 Z" fill="white"/><path d="M5.5 8.5 Q10 4.5 14.5 8.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.75"/><path d="M2.5 5.5 Q10 -0.5 17.5 5.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.55"/></svg><svg width="22" height="10" viewBox="0 0 32 15" fill="none"><rect x="0.75" y="0.75" width="27.5" height="13.5" rx="3.5" stroke="white" stroke-width="1.5" opacity="0.5"/><rect x="2.5" y="2.5" width="21" height="10" rx="2" fill="white"/><rect x="29" y="4.5" width="2.5" height="6" rx="1.2" fill="white" opacity="0.45"/></svg></div></div></div>
+  <div class="sa">
+    <div class="ps" style="top:-28px"><div class="pw"><div style="width:1499px;height:2929px;position:relative;background:#FAF8F5"><div style="width:1499px;height:628px;left:0;top:0;position:absolute;background:#182B49"></div></div></div></div>
+    <div class="ov ctr">
+      <div class="modal">
+        <div class="ov-hd"><span class="ov-close">✕</span><div class="ov-title">Edit Schedule</div></div>
+        <div class="cs">
+          <div class="sl">Class 1</div>
+          <div class="fg"><div class="fl">Class name</div><input class="fi" value="COGS 107B" readonly></div>
+          <div class="fg"><div class="fl">Location</div><input class="fi" value="MOS 0114" readonly></div>
+          <div class="fl">Days</div>
+          <div class="dr"><span class="dc">Mon</span><span class="dc">Tue</span><span class="dc">Wed</span><span class="dc act">Thu</span><span class="dc act">Fri</span><span class="dc">Sat</span><span class="dc">Sun</span></div>
+          <div class="tr"><div class="fg"><div class="fl">Start</div><input class="fi" value="9:30 AM" readonly></div><div class="fg"><div class="fl">End</div><input class="fi" value="10:50 AM" readonly></div></div>
+        </div>
+        <div class="ed"></div>
+        <div class="cs">
+          <div class="sl">Class 2</div>
+          <div class="fg"><div class="fl">Class name</div><input class="fi" value="MATH 171B" readonly></div>
+          <div class="fg"><div class="fl">Location</div><input class="fi" value="CENTR 113" readonly></div>
+          <div class="fl">Days</div>
+          <div class="dr"><span class="dc act">Mon</span><span class="dc">Tue</span><span class="dc act">Wed</span><span class="dc">Thu</span><span class="dc act">Fri</span><span class="dc">Sat</span><span class="dc">Sun</span></div>
+          <div class="tr"><div class="fg"><div class="fl">Start</div><input class="fi" value="3:00 PM" readonly></div><div class="fg"><div class="fl">End</div><input class="fi" value="3:50 PM" readonly></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tb"><div class="tbi"><div style="width:1499px;height:329px;position:relative"><div style="width:1499px;height:329px;left:0;top:0;position:absolute;background:#182B49"></div><div style="left:50%;top:40px;position:absolute;transform:translateX(-50%);justify-content:center;align-items:flex-end;gap:120px;display:inline-flex"><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 54 L55 22 L92 54" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M28 46 L28 88 Q28 91 31 91 L44 91 L44 70 Q44 67 47 67 L63 67 Q66 67 66 70 L66 91 L79 91 Q82 91 82 88 L82 46" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Home</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 18 C38 18 24 32 24 49 C24 64 40 80 55 93 C70 80 86 64 86 49 C86 32 72 18 55 18 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="55" cy="49" r="12" stroke="rgba(255,255,255,0.75)" stroke-width="6"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Map</div></div><div style="width:200px;height:200px;position:relative;flex-shrink:0;"><div style="width:282px;height:282px;left:-41px;top:-41px;position:absolute;background:#182B49;border-radius:9999px;"></div><div style="width:200px;height:200px;left:0;top:0;position:absolute;background:#FFCD00;border-radius:9999px;display:flex;align-items:center;justify-content:center;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 24 Q18 18 24 18 L86 18 Q92 18 92 24 L92 66 Q92 72 86 72 L42 72 L22 90 L22 72 L24 72 Q18 72 18 66 Z" stroke="#182B49" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="38" cy="45" r="6" fill="#182B49"/><circle cx="55" cy="45" r="6" fill="#182B49"/><circle cx="72" cy="45" r="6" fill="#182B49"/></svg></div></div><div style="width:130px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 14 L66 42 L96 42 L73 60 L82 88 L55 71 L28 88 L37 60 L14 42 L44 42 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Rewards</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><circle cx="55" cy="36" r="20" stroke="white" stroke-width="6"/><path d="M18 92 C18 73 35 58 55 58 C75 58 92 73 92 92" stroke="white" stroke-width="6" stroke-linecap="round"/></svg><div style="text-align:center;color:white;font-size:35px;font-family:Source Sans Pro;font-weight:600;">Profile</div></div></div></div></div></div>
+</div>
+<div class="screen-label">7 · Edit – class 1 &amp; 2</div>
+</div>
+
+<!-- SCREEN 8 · Edit Schedule – Class 3 & 4 + Confirm -->
+<div class="screen-wrap">
+<div class="screen">
+  <div class="sb"><div class="di"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><span class="st">9:41</span></div><div style="width:82px;flex-shrink:0;"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><div class="si"><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><rect x="0" y="9" width="4" height="6" rx="1" fill="white" opacity="0.4"/><rect x="5.3" y="6" width="4" height="9" rx="1" fill="white" opacity="0.6"/><rect x="10.6" y="3" width="4" height="12" rx="1" fill="white" opacity="0.8"/><rect x="15.9" y="0" width="4" height="15" rx="1" fill="white"/></svg><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><path d="M10 12.5 a1.8 1.8 0 1 1 0.001 0 Z" fill="white"/><path d="M5.5 8.5 Q10 4.5 14.5 8.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.75"/><path d="M2.5 5.5 Q10 -0.5 17.5 5.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.55"/></svg><svg width="22" height="10" viewBox="0 0 32 15" fill="none"><rect x="0.75" y="0.75" width="27.5" height="13.5" rx="3.5" stroke="white" stroke-width="1.5" opacity="0.5"/><rect x="2.5" y="2.5" width="21" height="10" rx="2" fill="white"/><rect x="29" y="4.5" width="2.5" height="6" rx="1.2" fill="white" opacity="0.45"/></svg></div></div></div>
+  <div class="sa">
+    <div class="ps" style="top:-28px"><div class="pw"><div style="width:1499px;height:2929px;position:relative;background:#FAF8F5"><div style="width:1499px;height:628px;left:0;top:0;position:absolute;background:#182B49"></div></div></div></div>
+    <div class="ov ctr">
+      <div class="modal">
+        <div class="ov-hd"><span class="ov-close">✕</span><div class="ov-title">Edit Schedule</div></div>
+        <div class="cs">
+          <div class="sl">Class 3</div>
+          <div class="fg"><div class="fl">Class name</div><input class="fi" value="COGS 187B" readonly></div>
+          <div class="fg"><div class="fl">Location</div><input class="fi" value="CSB 002" readonly></div>
+          <div class="fl">Days</div>
+          <div class="dr"><span class="dc">Mon</span><span class="dc">Tue</span><span class="dc">Wed</span><span class="dc act">Thu</span><span class="dc act">Fri</span><span class="dc">Sat</span><span class="dc">Sun</span></div>
+          <div class="tr"><div class="fg"><div class="fl">Start</div><input class="fi" value="2:00 PM" readonly></div><div class="fg"><div class="fl">End</div><input class="fi" value="3:20 PM" readonly></div></div>
+        </div>
+        <div class="ed"></div>
+        <div class="cs">
+          <div class="sl">Class 4</div>
+          <div class="fg"><div class="fl">Class name</div><input class="fi" value="MUS 17" readonly></div>
+          <div class="fg"><div class="fl">Location</div><input class="fi" value="WLH 2001" readonly></div>
+          <div class="fl">Days</div>
+          <div class="dr"><span class="dc">Mon</span><span class="dc">Tue</span><span class="dc act">Wed</span><span class="dc">Thu</span><span class="dc">Fri</span><span class="dc">Sat</span><span class="dc">Sun</span></div>
+          <div class="tr"><div class="fg"><div class="fl">Start</div><input class="fi" value="6:30 PM" readonly></div><div class="fg"><div class="fl">End</div><input class="fi" value="9:00 PM" readonly></div></div>
+        </div>
+        <div class="cb">Confirm</div>
+      </div>
+    </div>
+  </div>
+  <div class="tb"><div class="tbi"><div style="width:1499px;height:329px;position:relative"><div style="width:1499px;height:329px;left:0;top:0;position:absolute;background:#182B49"></div><div style="left:50%;top:40px;position:absolute;transform:translateX(-50%);justify-content:center;align-items:flex-end;gap:120px;display:inline-flex"><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 54 L55 22 L92 54" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M28 46 L28 88 Q28 91 31 91 L44 91 L44 70 Q44 67 47 67 L63 67 Q66 67 66 70 L66 91 L79 91 Q82 91 82 88 L82 46" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Home</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 18 C38 18 24 32 24 49 C24 64 40 80 55 93 C70 80 86 64 86 49 C86 32 72 18 55 18 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="55" cy="49" r="12" stroke="rgba(255,255,255,0.75)" stroke-width="6"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Map</div></div><div style="width:200px;height:200px;position:relative;flex-shrink:0;"><div style="width:282px;height:282px;left:-41px;top:-41px;position:absolute;background:#182B49;border-radius:9999px;"></div><div style="width:200px;height:200px;left:0;top:0;position:absolute;background:#FFCD00;border-radius:9999px;display:flex;align-items:center;justify-content:center;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 24 Q18 18 24 18 L86 18 Q92 18 92 24 L92 66 Q92 72 86 72 L42 72 L22 90 L22 72 L24 72 Q18 72 18 66 Z" stroke="#182B49" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="38" cy="45" r="6" fill="#182B49"/><circle cx="55" cy="45" r="6" fill="#182B49"/><circle cx="72" cy="45" r="6" fill="#182B49"/></svg></div></div><div style="width:130px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 14 L66 42 L96 42 L73 60 L82 88 L55 71 L28 88 L37 60 L14 42 L44 42 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Rewards</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><circle cx="55" cy="36" r="20" stroke="white" stroke-width="6"/><path d="M18 92 C18 73 35 58 55 58 C75 58 92 73 92 92" stroke="white" stroke-width="6" stroke-linecap="round"/></svg><div style="text-align:center;color:white;font-size:35px;font-family:Source Sans Pro;font-weight:600;">Profile</div></div></div></div></div></div>
+</div>
+<div class="screen-label">8 · Edit – class 3 &amp; 4</div>
+</div>
+
+<!-- SCREEN 9 · Profile (confirmed state) -->
+<div class="screen-wrap">
+<div class="screen">
+  <div class="sb"><div class="di"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><span class="st">9:41</span></div><div style="width:82px;flex-shrink:0;"></div><div style="flex:1;display:flex;justify-content:center;align-items:center;"><div class="si"><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><rect x="0" y="9" width="4" height="6" rx="1" fill="white" opacity="0.4"/><rect x="5.3" y="6" width="4" height="9" rx="1" fill="white" opacity="0.6"/><rect x="10.6" y="3" width="4" height="12" rx="1" fill="white" opacity="0.8"/><rect x="15.9" y="0" width="4" height="15" rx="1" fill="white"/></svg><svg width="13" height="10" viewBox="0 0 20 15" fill="none"><path d="M10 12.5 a1.8 1.8 0 1 1 0.001 0 Z" fill="white"/><path d="M5.5 8.5 Q10 4.5 14.5 8.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.75"/><path d="M2.5 5.5 Q10 -0.5 17.5 5.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.55"/></svg><svg width="22" height="10" viewBox="0 0 32 15" fill="none"><rect x="0.75" y="0.75" width="27.5" height="13.5" rx="3.5" stroke="white" stroke-width="1.5" opacity="0.5"/><rect x="2.5" y="2.5" width="21" height="10" rx="2" fill="white"/><rect x="29" y="4.5" width="2.5" height="6" rx="1.2" fill="white" opacity="0.45"/></svg></div></div></div>
+  <div class="sa">
+    <div class="ps" style="top:-28px">
+      <div class="pw">
+        <div style="width:1499px;height:2929px;position:relative;background:#FAF8F5">
+          <div style="width:1499px;height:628px;left:0;top:0;position:absolute;background:#182B49;overflow:hidden">
+            <div style="width:672px;left:386px;top:297px;position:absolute;text-align:center;color:#FAF8F5;font-size:85px;font-family:'Source Serif Pro';font-weight:600">Bailey Thompson</div>
+            <div style="width:311px;left:386px;top:404px;position:absolute;text-align:center;color:#C4C4C4;font-size:45px;font-family:'Source Sans Pro';font-weight:600">Seventh College</div>
+            <div style="width:200px;height:200px;left:137px;top:274px;position:absolute;background:linear-gradient(0deg,#FFC9B3 0%,#FFD2C2 100%);overflow:hidden;border-radius:100px"><div style="width:137px;height:75px;left:31px;top:125px;position:absolute;background:linear-gradient(180deg,#1D0024 0%,#100014 100%)"></div><div style="width:111px;height:91px;left:47px;top:26px;position:absolute;background:linear-gradient(0deg,#E6864E 0%,#E67240 100%)"></div><div style="width:68px;height:77px;left:73px;top:60px;position:absolute;background:#FFDBC9"></div><div style="width:51px;height:24px;left:75px;top:125px;position:absolute;background:white"></div></div>
+          </div>
+          <div style="width:1499px;height:2378px;left:0;top:551px;position:absolute;overflow:hidden">
+            <div style="width:1285px;left:107px;top:0;position:absolute;flex-direction:column;justify-content:flex-start;align-items:flex-start;gap:44px;display:inline-flex">
+              <div style="align-self:stretch;height:418px;position:relative;background:white;box-shadow:0 5px 10px rgba(0,0,0,.25);overflow:hidden;border-radius:45px"><div style="left:54px;top:41px;position:absolute;color:#747678;font-size:50px;font-weight:600">Dinning Dollars</div><div style="left:54px;top:130px;position:absolute;color:#182B49;font-size:90px;font-weight:700">$847.50</div><div style="width:1176px;height:27px;left:54px;top:269px;position:absolute;background:#D9D9D9;border-radius:45px"></div><div style="width:817px;height:27px;left:54px;top:269px;position:absolute;background:#192A4B;border-top-left-radius:45px;border-bottom-left-radius:45px"></div><div style="left:54px;top:322px;position:absolute;color:#747678;font-size:45px">$352.50 spent of $1200.00 plan</div><div style="left:1049px;top:46px;position:absolute;color:#E67A46;font-size:45px;font-weight:700">History</div></div>
+              <div style="align-self:stretch;height:251px;position:relative;background:white;box-shadow:0 5px 10px rgba(0,0,0,.25);overflow:hidden;border-radius:45px"><div style="left:54px;top:41px;position:absolute;color:#747678;font-size:50px;font-weight:600">Triton Cash</div><div style="left:54px;top:117px;position:absolute;color:#182B49;font-size:75px;font-weight:600">$135.70</div><div style="width:281px;height:117px;left:939px;top:67px;position:absolute;background:#FAF8F5;border-radius:45px;border:2px solid #EAE6E1"></div><div style="left:986px;top:97px;position:absolute;color:#182B49;font-size:45px;font-weight:700">Add Fund</div></div>
+              <!-- Class Schedule card – now showing schedule (confirmed) -->
+              <div style="align-self:stretch;height:301px;position:relative;background:white;box-shadow:0 5px 10px rgba(0,0,0,.25);overflow:hidden;border-radius:45px">
+                <div style="left:258px;top:58px;position:absolute;color:#182B49;font-size:55px;font-weight:700">Class Schedule</div>
+                <div style="width:537px;left:258px;top:139px;position:absolute;color:#747678;font-size:45px;line-height:52px">COGS 107B · MATH 171B · COGS 187B · MUS 17</div>
+                <div style="width:241px;height:117px;left:979px;top:96px;position:absolute;background:#22c55e;border-radius:45px"></div>
+                <div style="left:1012px;top:120px;position:absolute;text-align:center;color:white;font-size:40px;font-weight:700">✓ Saved</div>
+                <div style="width:150px;height:150px;left:54px;top:76px;position:absolute;background:#FECBB7;border-radius:45px"></div>
+                <div style="left:89px;top:111px;position:absolute;font-size:80px;line-height:1">📅</div>
+              </div>
+              <div style="align-self:stretch;height:254px;position:relative;background:white;box-shadow:0 5px 10px rgba(0,0,0,.25);overflow:hidden;border-radius:45px"><div style="left:258px;top:59px;position:absolute;color:#182B49;font-size:55px;font-weight:700">Payment Method</div><div style="left:258px;top:140px;position:absolute;color:#747678;font-size:45px">Dinning dollars</div><div style="width:150px;height:150px;left:54px;top:52px;position:absolute;background:#FECBB7;border-radius:45px"></div><div style="left:89px;top:87px;position:absolute;font-size:80px;line-height:1">💳</div><div style="left:1035px;top:99px;position:absolute;color:#E67A46;font-size:45px;font-weight:700">Manage</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tb"><div class="tbi"><div style="width:1499px;height:329px;position:relative"><div style="width:1499px;height:329px;left:0;top:0;position:absolute;background:#182B49"></div><div style="left:50%;top:40px;position:absolute;transform:translateX(-50%);justify-content:center;align-items:flex-end;gap:120px;display:inline-flex"><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 54 L55 22 L92 54" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M28 46 L28 88 Q28 91 31 91 L44 91 L44 70 Q44 67 47 67 L63 67 Q66 67 66 70 L66 91 L79 91 Q82 91 82 88 L82 46" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Home</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 18 C38 18 24 32 24 49 C24 64 40 80 55 93 C70 80 86 64 86 49 C86 32 72 18 55 18 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="55" cy="49" r="12" stroke="rgba(255,255,255,0.75)" stroke-width="6"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Map</div></div><div style="width:200px;height:200px;position:relative;flex-shrink:0;"><div style="width:282px;height:282px;left:-41px;top:-41px;position:absolute;background:#182B49;border-radius:9999px;"></div><div style="width:200px;height:200px;left:0;top:0;position:absolute;background:#FFCD00;border-radius:9999px;display:flex;align-items:center;justify-content:center;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M18 24 Q18 18 24 18 L86 18 Q92 18 92 24 L92 66 Q92 72 86 72 L42 72 L22 90 L22 72 L24 72 Q18 72 18 66 Z" stroke="#182B49" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="38" cy="45" r="6" fill="#182B49"/><circle cx="55" cy="45" r="6" fill="#182B49"/><circle cx="72" cy="45" r="6" fill="#182B49"/></svg></div></div><div style="width:130px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><path d="M55 14 L66 42 L96 42 L73 60 L82 88 L55 71 L28 88 L37 60 L14 42 L44 42 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="text-align:center;color:rgba(255,255,255,0.75);font-size:35px;font-family:Source Sans Pro;font-weight:600;">Rewards</div></div><div style="width:110px;height:190px;position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><circle cx="55" cy="36" r="20" stroke="white" stroke-width="6"/><path d="M18 92 C18 73 35 58 55 58 C75 58 92 73 92 92" stroke="white" stroke-width="6" stroke-linecap="round"/></svg><div style="text-align:center;color:white;font-size:35px;font-family:Source Sans Pro;font-weight:600;">Profile</div></div></div></div></div></div>
+</div>
+<div class="screen-label">9 · Schedule saved</div>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reusable Components – Triton Dining</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #1a2a4a;
+    font-family: 'Source Sans Pro', sans-serif;
+    padding: 40px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+  }
+
+  .component-block {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .component-label {
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .component-desc {
+    color: rgba(255,255,255,0.35);
+    font-size: 12px;
+    margin-top: -6px;
+    margin-bottom: 4px;
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     COMPONENT: STATUS BAR
+     Usage: drop inside any element that acts as the phone
+            screen. Width inherits from parent (full-width).
+            Requires: .status-bar, .dynamic-island,
+                      .status-time, .status-icons
+  ═══════════════════════════════════════════════════════ */
+  .status-bar {
+    width: 430px;
+    height: 59px;
+    background: #182B49;
+    display: flex;
+    align-items: center;
+    padding: 10px 0 0;
+    position: relative;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .dynamic-island {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 126px;
+    height: 37px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 10;
+  }
+
+  .status-time {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: -apple-system, 'SF Pro Display', sans-serif;
+    letter-spacing: -0.3px;
+  }
+
+  .status-spacer {
+    width: 126px;
+    flex-shrink: 0;
+  }
+
+  .status-icons {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .status-icons svg { fill: white; opacity: 0.9; }
+
+
+  /* ═══════════════════════════════════════════════════════
+     COMPONENT: BOTTOM NAV BAR
+     Usage: fixed or absolute at the bottom of the screen.
+            Width should match screen width (430px for iPhone 16 PM).
+            Requires: .nav-bar, .nav-item, .nav-icon,
+                      .nav-label, .nav-center
+     Colors: --nav-bg, --nav-active, --nav-inactive, --nav-accent
+  ═══════════════════════════════════════════════════════ */
+  :root {
+    --nav-bg:       #182B49;
+    --nav-active:   #ffffff;
+    --nav-inactive: rgba(255,255,255,0.55);
+    --nav-accent:   #FFCD00;
+  }
+
+  .nav-bar {
+    width: 430px;
+    height: 90px;
+    background: var(--nav-bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 8px;
+    border-radius: 0 0 12px 12px;
+    position: relative;
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+  }
+
+  .nav-icon {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--nav-inactive);
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+
+  .nav-item.active .nav-label { color: var(--nav-active); }
+  .nav-item.active .nav-icon svg { stroke: var(--nav-active); }
+
+  /* Center floating button */
+  .nav-center {
+    width: 56px;
+    height: 56px;
+    background: var(--nav-accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -28px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(255,205,0,0.35);
+  }
+
+  /* Outer halo behind center button */
+  .nav-center-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    flex: 1;
+  }
+
+  .nav-center-wrap::before {
+    content: '';
+    position: absolute;
+    top: -36px;
+    width: 72px;
+    height: 72px;
+    background: var(--nav-bg);
+    border-radius: 50%;
+    z-index: 0;
+  }
+
+  .nav-center { position: relative; z-index: 1; }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════
+       COMPONENT 1 · STATUS BAR
+  ═══════════════════════════════════════════════════ -->
+  <div class="component-block">
+    <div class="component-label">① Status Bar</div>
+    <div class="component-desc">430px wide · 59px tall · navy bg · Dynamic Island centered</div>
+
+    <!-- COPY FROM HERE ↓ -->
+    <div class="status-bar">
+      <div class="dynamic-island"></div>
+
+      <!-- Left zone: time -->
+      <div class="status-time">9:41</div>
+
+      <!-- Center spacer = Dynamic Island width -->
+      <div class="status-spacer"></div>
+
+      <!-- Right zone: icons -->
+      <div class="status-icons">
+        <!-- Signal bars -->
+        <svg width="17" height="13" viewBox="0 0 20 15" fill="none">
+          <rect x="0"    y="9"  width="4" height="6"  rx="1" fill="white" opacity="0.4"/>
+          <rect x="5.3"  y="6"  width="4" height="9"  rx="1" fill="white" opacity="0.6"/>
+          <rect x="10.6" y="3"  width="4" height="12" rx="1" fill="white" opacity="0.8"/>
+          <rect x="15.9" y="0"  width="4" height="15" rx="1" fill="white"/>
+        </svg>
+        <!-- WiFi -->
+        <svg width="17" height="13" viewBox="0 0 20 15" fill="none">
+          <path d="M10 12.5 a1.8 1.8 0 1 1 0.001 0 Z" fill="white"/>
+          <path d="M5.5 8.5 Q10 4.5 14.5 8.5"  stroke="white" stroke-width="1.6" stroke-linecap="round" opacity="0.75"/>
+          <path d="M2.5 5.5 Q10 -0.5 17.5 5.5" stroke="white" stroke-width="1.6" stroke-linecap="round" opacity="0.55"/>
+        </svg>
+        <!-- Battery -->
+        <svg width="26" height="13" viewBox="0 0 32 15" fill="none">
+          <rect x="0.75" y="0.75" width="27.5" height="13.5" rx="3.5" stroke="white" stroke-width="1.5" opacity="0.5"/>
+          <rect x="2.5"  y="2.5"  width="21"   height="10"   rx="2"   fill="white"/>
+          <rect x="29"   y="4.5"  width="2.5"  height="6"    rx="1.2" fill="white" opacity="0.45"/>
+        </svg>
+      </div>
+    </div>
+    <!-- COPY TO HERE ↑ -->
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════
+       COMPONENT 2 · BOTTOM NAV BAR
+  ═══════════════════════════════════════════════════ -->
+  <div class="component-block">
+    <div class="component-label">② Bottom Nav Bar</div>
+    <div class="component-desc">430px wide · 90px tall · navy bg · yellow center FAB · SVG icons</div>
+
+    <!-- COPY FROM HERE ↓ -->
+    <div class="nav-bar">
+
+      <!-- Home -->
+      <div class="nav-item">
+        <div class="nav-icon">
+          <svg width="26" height="26" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 54 L55 22 L92 54" stroke="rgba(255,255,255,0.55)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M28 46 L28 88 Q28 91 31 91 L44 91 L44 70 Q44 67 47 67 L63 67 Q66 67 66 70 L66 91 L79 91 Q82 91 82 88 L82 46" stroke="rgba(255,255,255,0.55)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="nav-label">Home</span>
+      </div>
+
+      <!-- Map -->
+      <div class="nav-item">
+        <div class="nav-icon">
+          <svg width="22" height="26" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M55 18 C38 18 24 32 24 49 C24 64 40 80 55 93 C70 80 86 64 86 49 C86 32 72 18 55 18 Z" stroke="rgba(255,255,255,0.55)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="55" cy="49" r="12" stroke="rgba(255,255,255,0.55)" stroke-width="7"/>
+          </svg>
+        </div>
+        <span class="nav-label">Map</span>
+      </div>
+
+      <!-- Center FAB -->
+      <div class="nav-center-wrap">
+        <div class="nav-center">
+          <svg width="30" height="30" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 24 Q18 18 24 18 L86 18 Q92 18 92 24 L92 66 Q92 72 86 72 L42 72 L22 90 L22 72 L24 72 Q18 72 18 66 Z" stroke="#182B49" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="38" cy="45" r="7" fill="#182B49"/>
+            <circle cx="55" cy="45" r="7" fill="#182B49"/>
+            <circle cx="72" cy="45" r="7" fill="#182B49"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Rewards -->
+      <div class="nav-item">
+        <div class="nav-icon">
+          <svg width="26" height="26" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M55 14 L66 42 L96 42 L73 60 L82 88 L55 71 L28 88 L37 60 L14 42 L44 42 Z" stroke="rgba(255,255,255,0.55)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="nav-label">Rewards</span>
+      </div>
+
+      <!-- Profile (active) -->
+      <div class="nav-item active">
+        <div class="nav-icon">
+          <svg width="24" height="26" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="55" cy="36" r="20" stroke="white" stroke-width="7"/>
+            <path d="M18 92 C18 73 35 58 55 58 C75 58 92 73 92 92" stroke="white" stroke-width="7" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="nav-label">Profile</span>
+      </div>
+
+    </div>
+    <!-- COPY TO HERE ↑ -->
+  </div>
+
+</body>
+</html>

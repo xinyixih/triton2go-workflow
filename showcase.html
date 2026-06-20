@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload Class Schedule – Flow Showcase</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&family=Source+Serif+Pro:wght@600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #1a1a2e;
+    background-image: radial-gradient(ellipse at 30% 20%, #16213e 0%, #0f3460 50%, #1a1a2e 100%);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Source Sans Pro', sans-serif;
+    position: relative;
+  }
+
+  /* iPhone is the only flex child → always perfectly centered */
+  .page-layout { display: contents; }
+  .right-spacer { display: none; }
+
+  /* Left panel floats free, never displaces the centered iPhone */
+  .left-panel {
+    position: absolute;
+    left: 80px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    width: 136px;
+    pointer-events: none;
+  }
+
+  h1 {
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    opacity: 0.9;
+    line-height: 1.4;
+  }
+
+  .subtitle {
+    color: rgba(255,255,255,0.4);
+    font-size: 11px;
+    margin-bottom: 40px;
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+  }
+
+  /* ── iPhone 16 Pro Max mockup ──
+     width 260px, padding 6px → screen 248px
+     height fixed at 607px (taller ratio for slim look)  */
+  .iphone {
+    position: relative;
+    width: 260px;
+    background: #1c1c1e;
+    border-radius: 46px;
+    box-shadow:
+      0 0 0 1px #6a6a6c,
+      0 0 0 2px #3a3a3c,
+      0 0 0 8px #242424,
+      0 0 0 9.5px #4a4a4c,
+      0 24px 70px rgba(0,0,0,0.75),
+      0 6px 20px rgba(0,0,0,0.5);
+    padding: 6px;
+    flex-shrink: 0;
+  }
+
+  /* Side buttons */
+  .iphone::before {
+    content: '';
+    position: absolute;
+    left: -11px;
+    top: 93px;
+    width: 3px;
+    height: 25px;
+    background: #3a3a3c;
+    border-radius: 2px 0 0 2px;
+    box-shadow: 0 34px 0 #3a3a3c, 0 68px 0 #3a3a3c;
+  }
+  .iphone::after {
+    content: '';
+    position: absolute;
+    right: -11px;
+    top: 123px;
+    width: 3px;
+    height: 52px;
+    background: #3a3a3c;
+    border-radius: 0 2px 2px 0;
+  }
+
+  /* Screen bezel — thin, high-radius corners */
+  .screen-bezel {
+    width: 100%;
+    border-radius: 40px;
+    overflow: hidden;
+    background: #182B49;
+    position: relative;
+  }
+
+  /* Status bar */
+  /* ╔══════════════════════════════════════════════════╗
+     ║  COMPONENT · STATUS BAR                         ║
+     ║  Reuse: copy .status-bar, .dynamic-island,      ║
+     ║         .status-time, .status-icons + HTML block ║
+     ╚══════════════════════════════════════════════════╝ */
+  .status-bar {
+    height: 36px;
+    background: #182B49;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0 0;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  /* Dynamic Island */
+  .dynamic-island {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 82px;
+    height: 24px;
+    background: #000;
+    border-radius: 12px;
+    z-index: 10;
+  }
+
+  .status-time {
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    font-family: -apple-system, sans-serif;
+  }
+
+  .status-icons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .status-icons svg {
+    fill: white;
+    opacity: 0.9;
+  }
+  /* ╚══ END COMPONENT · STATUS BAR ══╝ */
+
+  /* frame 260px wide, height fixed 607px
+     screen = 607 − 12 padding = 595px
+     595 − 36 status − 54 tab = 505px scroll              */
+  .phone-scroll {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height: 505px;
+    position: relative;
+    scrollbar-width: none;
+  }
+  .phone-scroll::-webkit-scrollbar { display: none; }
+
+  /* scale = 248/1499 ≈ 0.1655  (248 = 260 − 2×6 padding) */
+  .profile-wrapper {
+    width: 1499px;
+    transform-origin: top left;
+    transform: scale(0.1655);
+    height: 3258px;
+  }
+
+  /* content only (no tab bar): 2929×0.1655 ≈ 485px */
+  .profile-scale-container {
+    width: 248px;
+    height: 485px;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  /* ╔══════════════════════════════════════════════════╗
+     ║  COMPONENT · BOTTOM NAV BAR                     ║
+     ║  Reuse: copy .tab-bar-fixed, .tab-bar-inner     ║
+     ║         + HTML block below                      ║
+     ╚══════════════════════════════════════════════════╝ */
+  /* Fixed tab bar: 329×0.1655 ≈ 54px */
+  .tab-bar-fixed {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%;
+    height: 54px;
+    overflow: hidden;
+    z-index: 15;
+  }
+  .tab-bar-fixed .tab-bar-inner {
+    width: 1499px;
+    height: 329px;
+    transform-origin: top left;
+    transform: scale(0.1655);
+    position: absolute;
+    top: 0; left: 0;
+  }
+
+  /* ── Overlays ── */
+  .overlay-backdrop {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 20;
+    border-radius: 32px;
+  }
+  .overlay-backdrop.active { display: flex; align-items: flex-end; }
+  .overlay-backdrop.center  { align-items: center; justify-content: center; }
+
+  /* Bottom-sheet style */
+  .sheet {
+    width: 100%;
+    background: #fff;
+    border-radius: 24px 24px 0 0;
+    overflow-y: auto;
+    max-height: 90%;
+    scrollbar-width: none;
+    padding: 24px 20px 32px;
+    animation: slideUp 0.32s cubic-bezier(0.34,1.1,0.64,1) both;
+  }
+  .sheet::-webkit-scrollbar { display: none; }
+
+  /* Center modal style */
+  .modal {
+    width: 88%;
+    background: #fff;
+    border-radius: 20px;
+    overflow-y: auto;
+    max-height: 92%;
+    scrollbar-width: none;
+    padding: 24px 20px 24px;
+    animation: popIn 0.28s cubic-bezier(0.34,1.1,0.64,1) both;
+  }
+  .modal::-webkit-scrollbar { display: none; }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0);   opacity: 1; }
+  }
+  @keyframes popIn {
+    from { transform: scale(0.88); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+  }
+
+  /* ── Shared overlay content constraints ── */
+  .sheet, .modal {
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Bottom-sheet */
+  .sheet { padding: 12px 12px 16px; }
+
+  /* Drag handle */
+  .drag-handle {
+    width: 28px; height: 3px;
+    background: #d1d1d6;
+    border-radius: 2px;
+    margin: 0 auto 12px;
+  }
+
+  .overlay-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #182B49;
+    margin-bottom: 8px;
+    word-break: break-word;
+  }
+
+  .overlay-close {
+    float: right;
+    font-size: 11px;
+    cursor: pointer;
+    color: #aaa;
+    line-height: 1;
+    padding: 2px 4px;
+    border-radius: 50%;
+    background: #f0f0f0;
+  }
+
+  /* AI hint — flex children must have min-width:0 to allow text wrapping */
+  .ai-hint {
+    background: #f5f5f5;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 8.5px;
+    color: #555;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
+    overflow: hidden;
+  }
+  .ai-hint .ai-icon { font-size: 10px; flex-shrink: 0; line-height: 1.4; }
+  .ai-hint .ai-text { flex: 1; min-width: 0; line-height: 1.4; word-break: break-word; }
+
+  /* Upload options */
+  .upload-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    padding: 7px 8px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: background 0.15s;
+    overflow: hidden;
+  }
+  .upload-option:hover { background: #fafafa; }
+  .upload-option:last-child { margin-bottom: 0; }
+
+  .opt-icon {
+    width: 26px; height: 26px;
+    background: #f5f5f5;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0;
+  }
+
+  /* opt-text must be a constrained flex child */
+  .opt-text { flex: 1; min-width: 0; overflow: hidden; }
+  .opt-text h3 { font-size: 9px; font-weight: 700; color: #182B49; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .opt-text p  { font-size: 8px; color: #888; line-height: 1.3; word-break: break-word; }
+
+  /* Review modal */
+  .modal { padding: 12px 12px 12px; }
+
+  .source-img-box {
+    background: #f0f1f5;
+    border-radius: 8px;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    font-size: 8.5px;
+    color: #666;
+    overflow: hidden;
+  }
+  .source-img-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 6px;
+  }
+  .source-img-preview {
+    background: #dde0ea;
+    border-radius: 5px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .class-card {
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    padding: 6px 8px;
+    margin-bottom: 5px;
+    overflow: hidden;
+  }
+
+  .class-name { font-size: 9px; font-weight: 700; color: #182B49; margin-bottom: 3px; }
+  .class-detail { font-size: 8px; color: #555; display: flex; align-items: center; gap: 3px; margin-bottom: 2px; overflow: hidden; }
+  .class-detail .dot { color: #E67A46; font-size: 9px; flex-shrink: 0; }
+  .class-detail span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .review-actions { display: flex; gap: 6px; margin-top: 10px; }
+  .btn-outline {
+    flex: 1; padding: 6px; border-radius: 6px;
+    border: 1px solid #ddd; background: #fff;
+    font-size: 9px; font-weight: 600; color: #182B49; cursor: pointer;
+  }
+  .btn-fill {
+    flex: 1; padding: 6px; border-radius: 6px;
+    background: #E67A46; border: none;
+    font-size: 9px; font-weight: 700; color: #fff; cursor: pointer;
+  }
+
+  /* Edit modal */
+  .class-section { margin-bottom: 10px; }
+  .section-label { font-size: 7.5px; font-weight: 700; color: #aaa; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 5px; }
+
+  .field-group { margin-bottom: 4px; }
+  .field-label { font-size: 7.5px; color: #888; margin-bottom: 2px; }
+  .field-input {
+    width: 100%; border: 1px solid #ddd; border-radius: 4px;
+    padding: 4px 6px; font-size: 8.5px; color: #333;
+    font-family: inherit; background: #fff; box-sizing: border-box;
+  }
+
+  .days-row { display: flex; gap: 2px; flex-wrap: wrap; margin-bottom: 4px; }
+  .day-chip {
+    padding: 2px 4px; border-radius: 3px; font-size: 7.5px; font-weight: 600;
+    border: 1px solid #ddd; color: #555; background: #fff;
+  }
+  .day-chip.active { background: #182B49; color: #fff; border-color: #182B49; }
+
+  .time-row { display: flex; gap: 4px; }
+  .time-row .field-group { flex: 1; min-width: 0; }
+
+  .edit-divider { height: 1px; background: #f0f0f0; margin: 6px 0; }
+
+  .confirm-btn-full {
+    width: 100%; padding: 7px; border-radius: 6px;
+    background: #E67A46; border: none;
+    font-size: 9px; font-weight: 700; color: #fff; cursor: pointer;
+    margin-top: 10px; box-sizing: border-box;
+  }
+
+  /* Step indicators — vertical */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: default;
+    position: relative;
+  }
+  .step-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1.5px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.4);
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .step.active .step-num {
+    background: #E67A46;
+    border-color: #E67A46;
+    color: #fff;
+    box-shadow: 0 0 14px rgba(230,122,70,0.55);
+  }
+  .step-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+  }
+  .step.active .step-label { color: rgba(255,255,255,0.85); font-weight: 600; }
+
+  /* vertical line between steps */
+  .step-connector {
+    width: 1.5px;
+    height: 28px;
+    background: rgba(255,255,255,0.12);
+    margin-left: 13px; /* center under step-num */
+  }
+
+  /* Tap hint */
+  .tap-hint {
+    color: rgba(255,255,255,0.35);
+    font-size: 11px;
+    margin-top: 24px;
+    letter-spacing: 0.01em;
+    line-height: 1.5;
+  }
+  .tap-hint strong { color: rgba(255,255,255,0.6); }
+
+  /* Upload trigger at scale 0.1655:
+     top = 1404×0.1655≈232, left = 979×0.1655≈162 */
+  .upload-trigger {
+    position: absolute;
+    top: 232px;
+    left: 162px;
+    width: 40px;   /* 241×0.1655 */
+    height: 19px;  /* 117×0.1655 */
+    cursor: pointer;
+    z-index: 5;
+    border-radius: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-layout">
+
+<!-- Left panel: title + vertical steps -->
+<div class="left-panel">
+  <h1>Upload Class Schedule</h1>
+  <p class="subtitle">Profile page flow</p>
+
+  <div class="steps" id="steps">
+    <div class="step active" id="step1">
+      <div class="step-num">1</div>
+      <div class="step-label">Profile</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step" id="step2">
+      <div class="step-num">2</div>
+      <div class="step-label">Upload Options</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step" id="step3">
+      <div class="step-num">3</div>
+      <div class="step-label">Review &amp; Confirm</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step" id="step4">
+      <div class="step-num">4</div>
+      <div class="step-label">Edit Schedule</div>
+    </div>
+  </div>
+
+  <p class="tap-hint">Tap the <strong>Upload</strong> button on the Class Schedule card to start</p>
+</div>
+
+<!-- iPhone mockup -->
+<div class="iphone">
+  <div class="screen-bezel">
+
+    <!-- Status bar -->
+    <!-- ╔══════════════════════════════════════════════════╗
+         ║  COMPONENT · STATUS BAR  (start)               ║
+         ║  Full reference → _components.html             ║
+         ╚══════════════════════════════════════════════════╝ -->
+    <div class="status-bar">
+      <div class="dynamic-island"></div>
+      <!-- 3-column layout: left zone / island spacer / right zone -->
+      <div style="flex:1; display:flex; justify-content:center; align-items:center;">
+        <span class="status-time">9:41</span>
+      </div>
+      <div style="width:82px; flex-shrink:0;"></div><!-- spacer = dynamic island width -->
+      <div style="flex:1; display:flex; justify-content:center; align-items:center;">
+      <div class="status-icons">
+        <!-- Signal bars — 4 bars, filled white -->
+        <svg width="13" height="10" viewBox="0 0 20 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0"   y="9"  width="4" height="6"  rx="1" fill="white" opacity="0.4"/>
+          <rect x="5.3" y="6"  width="4" height="9"  rx="1" fill="white" opacity="0.6"/>
+          <rect x="10.6" y="3" width="4" height="12" rx="1" fill="white" opacity="0.8"/>
+          <rect x="15.9" y="0" width="4" height="15" rx="1" fill="white"/>
+        </svg>
+        <!-- WiFi — 3 arcs + dot -->
+        <svg width="13" height="10" viewBox="0 0 20 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 12.5 a1.8 1.8 0 1 1 0.001 0 Z" fill="white"/>
+          <path d="M5.5 8.5 Q10 4.5 14.5 8.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.75"/>
+          <path d="M2.5 5.5 Q10 -0.5 17.5 5.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.55"/>
+        </svg>
+        <!-- Battery — outline + fill + nub -->
+        <svg width="22" height="10" viewBox="0 0 32 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0.75" y="0.75" width="27.5" height="13.5" rx="3.5" stroke="white" stroke-width="1.5" opacity="0.5"/>
+          <rect x="2.5"  y="2.5"  width="21"   height="10"   rx="2" fill="white"/>
+          <rect x="29"   y="4.5"  width="2.5"  height="6"    rx="1.2" fill="white" opacity="0.45"/>
+        </svg>
+      </div>
+      </div><!-- end right zone -->
+    </div>
+    <!-- ╚══ END COMPONENT · STATUS BAR ══╝ -->
+
+    <!-- Scrollable profile -->
+    <div class="phone-scroll" id="phoneScroll">
+      <div class="profile-scale-container">
+        <!-- Invisible click target over the Upload button -->
+        <div class="upload-trigger" onclick="openUpload()" title="Tap to upload class schedule"></div>
+
+        <div class="profile-wrapper">
+          <!-- Paste the profile.html content verbatim -->
+          <div style="width: 1499px; height: 2929px; position: relative; background: #FAF8F5">
+            <div style="width: 1499px; height: 628px; left: 0px; top: 0px; position: absolute; background: #182B49; overflow: hidden">
+              <div style="width: 672px; left: 386px; top: 297px; position: absolute; text-align: center; color: #FAF8F5; font-size: 85px; font-family: Source Serif Pro; font-weight: 600; word-wrap: break-word">Bailey Thompson</div>
+              <div style="width: 311px; left: 386px; top: 404px; position: absolute; text-align: center; color: #C4C4C4; font-size: 45px; font-family: Source Sans Pro; font-weight: 600; word-wrap: break-word">Seventh College</div>
+              <div style="width: 200px; height: 200px; left: 137px; top: 274px; position: absolute; background: linear-gradient(0deg, #FFC9B3 0%, #FFD2C2 100%); overflow: hidden; border-radius: 100px">
+                <div style="width: 137.33px; height: 75.33px; left: 31.33px; top: 124.67px; position: absolute; background: linear-gradient(180deg, #1D0024 0%, #100014 100%)"></div>
+                <div style="width: 5.33px; height: 32px; left: 97.33px; top: 154.67px; position: absolute; background: white"></div>
+                <div style="width: 111.16px; height: 90.72px; left: 46.84px; top: 26.22px; position: absolute; background: linear-gradient(0deg, #E6864E 0%, #E67240 100%)"></div>
+                <div style="width: 67.79px; height: 76.88px; left: 73.01px; top: 60.46px; position: absolute; background: #FFDBC9"></div>
+                <div style="width: 23.33px; height: 14.33px; left: 92.67px; top: 107.67px; position: absolute; background: #FFBC9E"></div>
+                <div style="width: 50.67px; height: 23.67px; left: 74.67px; top: 124.67px; position: absolute; background: white"></div>
+              </div>
+            </div>
+            <div style="width: 1499px; height: 2378px; left: 0px; top: 551px; position: absolute; overflow: hidden">
+              <div style="width: 1285px; left: 107px; top: 0px; position: absolute; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 44px; display: inline-flex">
+                <div style="align-self: stretch; height: 418px; position: relative; background: white; box-shadow: 0px 5px 10px rgba(0,0,0,0.25); overflow: hidden; border-radius: 45px">
+                  <div style="left: 54px; top: 41px; position: absolute; text-align: center; color: #747678; font-size: 50px; font-family: Source Sans Pro; font-weight: 600; word-wrap: break-word">Dinning Dollars</div>
+                  <div style="left: 54px; top: 130px; position: absolute; text-align: center; color: #182B49; font-size: 90px; font-family: Source Sans Pro; font-weight: 700; word-wrap: break-word">$847.50</div>
+                  <div style="width: 1176px; height: 27px; left: 54px; top: 269px; position: absolute; background: #D9D9D9; border-radius: 45px"></div>
+                  <div style="width: 817px; height: 27px; left: 54px; top: 269px; position: absolute; background: #192A4B; border-top-left-radius: 45px; border-bottom-left-radius: 45px"></div>
+                  <div style="left: 54px; top: 322px; position: absolute; text-align: center; color: #747678; font-size: 45px; font-family: Source Sans Pro; font-weight: 400; word-wrap: break-word">$352.50 spent of $1200.00 plan</div>
+                  <div style="left: 1049px; top: 46px; position: absolute; text-align: center; color: #E67A46; font-size: 45px; font-family: Source Sans Pro; font-weight: 700; word-wrap: break-word">History</div>
+                  <div style="width: 23px; height: 48px; left: 1207px; top: 51px; position: absolute; overflow: hidden">
+                    <div style="width: 15.94px; height: 24.94px; left: 6.03px; top: 11.53px; position: absolute; background: #E67A46"></div>
+                  </div>
+                </div>
+                <div style="align-self: stretch; height: 251px; position: relative; background: white; box-shadow: 0px 5px 10px rgba(0,0,0,0.25); overflow: hidden; border-radius: 45px">
+                  <div style="left: 54px; top: 41px; position: absolute; text-align: center; color: #747678; font-size: 50px; font-family: Source Sans Pro; font-weight: 600; word-wrap: break-word">Triton Cash</div>
+                  <div style="left: 54px; top: 117px; position: absolute; text-align: center; color: #182B49; font-size: 75px; font-family: Source Sans Pro; font-weight: 600; word-wrap: break-word">$135.70</div>
+                  <div style="width: 281px; height: 117px; left: 939px; top: 67px; position: absolute; background: #FAF8F5; border-radius: 45px; border: 2px #EAE6E1 solid"></div>
+                  <div style="left: 986px; top: 97px; position: absolute; text-align: center; color: #182B49; font-size: 45px; font-family: Source Sans Pro; font-weight: 700; word-wrap: break-word">Add Fund</div>
+                </div>
+                <!-- Class Schedule card -->
+                <div style="align-self: stretch; height: 301px; position: relative; background: white; box-shadow: 0px 5px 10px rgba(0,0,0,0.25); overflow: hidden; border-radius: 45px">
+                  <div style="left: 258px; top: 58px; position: absolute; text-align: center; color: #182B49; font-size: 55px; font-family: Source Sans Pro; font-weight: 700; word-wrap: break-word">Class Schedule</div>
+                  <div style="width: 537px; left: 258px; top: 139px; position: absolute; color: #747678; font-size: 45px; font-family: Source Sans Pro; font-weight: 400; line-height: 52px; word-wrap: break-word">Help us recommend nearby restaurants between classes</div>
+                  <div style="width: 241px; height: 117px; left: 979px; top: 96px; position: absolute; background: #E67A46; border-radius: 45px"></div>
+                  <div style="width: 143px; left: 1028px; top: 126px; position: absolute; text-align: center; color: white; font-size: 45px; font-family: Source Sans Pro; font-weight: 700; word-wrap: break-word">Upload</div>
+                  <div style="width: 150px; height: 150px; left: 54px; top: 76px; position: absolute; background: #FECBB7; border-radius: 45px"></div>
+                  <div style="left: 89px; top: 111px; position: absolute; font-size: 80px; line-height: 1;">📅</div>
+                </div>
+                <div style="align-self: stretch; height: 254px; position: relative; background: white; box-shadow: 0px 5px 10px rgba(0,0,0,0.25); overflow: hidden; border-radius: 45px">
+                  <div style="left: 258px; top: 59px; position: absolute; text-align: center; color: #182B49; font-size: 55px; font-family: Source Sans Pro; font-weight: 700; word-wrap: break-word">Payment Method</div>
+                  <div style="left: 258px; top: 140px; position: absolute; color: #747678; font-size: 45px; font-family: Source Sans Pro; font-weight: 400; line-height: 52px; word-wrap: break-word">Dinning dollars</div>
+                  <div style="width: 150px; height: 150px; left: 54px; top: 52px; position: absolute; background: #FECBB7; border-radius: 45px"></div>
+                  <div style="left: 89px; top: 87px; position: absolute; font-size: 80px; line-height: 1;">💳</div>
+                  <div style="left: 1035px; top: 99px; position: absolute; text-align: center; color: #E67A46; font-size: 45px; font-family: Source Sans Pro; font-weight: 700; word-wrap: break-word">Manage</div>
+                  <div style="width: 23px; height: 48px; left: 1205px; top: 104px; position: absolute; overflow: hidden">
+                    <div style="width: 15.94px; height: 24.94px; left: 6.03px; top: 11.53px; position: absolute; background: #E67A46"></div>
+                  </div>
+                </div>
+              </div>
+              <div style="width: 1499px; height: 864px; left: 0px; top: 1471px; position: absolute; overflow: hidden">
+                <div style="width: 1285px; left: 107px; top: 95px; position: absolute; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 44px; display: inline-flex">
+                  <div style="align-self: stretch; height: 210px; position: relative; background: white; box-shadow: 0px 5px 10px rgba(0,0,0,0.25); overflow: hidden; border-radius: 45px">
+                    <div style="left: 53px; top: 60px; position: absolute; font-size: 80px; line-height: 1;">🎧</div>
+                    <div style="width: 23px; height: 48px; left: 1205px; top: 82px; position: absolute; overflow: hidden">
+                      <div style="width: 15.94px; height: 24.94px; left: 6.03px; top: 11.53px; position: absolute; background: #747678"></div>
+                    </div>
+                    <div style="left: 176px; top: 37px; position: absolute; text-align: center; color: #182B49; font-size: 55px; font-family: Source Sans Pro; font-weight: 600; word-wrap: break-word">Dinning Support</div>
+                    <div style="left: 176px; top: 119px; position: absolute; color: #747678; font-size: 45px; font-family: Source Sans Pro; font-weight: 400; line-height: 52px; word-wrap: break-word">Report an issue or get help</div>
+                  </div>
+                  <div style="align-self: stretch; height: 210px; position: relative; background: white; box-shadow: 0px 5px 10px rgba(0,0,0,0.25); overflow: hidden; border-radius: 45px">
+                    <div style="left: 176px; top: 37px; position: absolute; text-align: center; color: #182B49; font-size: 55px; font-family: Source Sans Pro; font-weight: 600; word-wrap: break-word">Nutriton &amp; Allergens</div>
+                    <div style="left: 176px; top: 119px; position: absolute; color: #747678; font-size: 45px; font-family: Source Sans Pro; font-weight: 400; line-height: 52px; word-wrap: break-word">Dietary info for all menus</div>
+                    <div style="left: 53px; top: 60px; position: absolute; font-size: 80px; line-height: 1;">🥗</div>
+                    <div style="width: 23px; height: 48px; left: 1205px; top: 82px; position: absolute; overflow: hidden">
+                      <div style="width: 15.94px; height: 24.94px; left: 6.03px; top: 11.53px; position: absolute; background: #747678"></div>
+                    </div>
+                  </div>
+                  <div style="align-self: stretch; height: 210px; position: relative; background: white; box-shadow: 0px 5px 10px rgba(0,0,0,0.25); overflow: hidden; border-radius: 45px">
+                    <div style="left: 176px; top: 37px; position: absolute; text-align: center; color: #182B49; font-size: 55px; font-family: Source Sans Pro; font-weight: 600; word-wrap: break-word">Dinning Service Hiring</div>
+                    <div style="left: 176px; top: 119px; position: absolute; color: #747678; font-size: 45px; font-family: Source Sans Pro; font-weight: 400; line-height: 52px; word-wrap: break-word">Student position available</div>
+                    <div style="left: 53px; top: 60px; position: absolute; font-size: 80px; line-height: 1;">💼</div>
+                    <div style="width: 23px; height: 48px; left: 1205px; top: 82px; position: absolute; overflow: hidden">
+                      <div style="width: 15.94px; height: 24.94px; left: 6.03px; top: 11.53px; position: absolute; background: #747678"></div>
+                    </div>
+                  </div>
+                </div>
+                <div style="left: 105px; top: 0px; position: absolute; color: #747678; font-size: 45px; font-family: Source Sans Pro; font-weight: 700; line-height: 52px; word-wrap: break-word">SUPPORT &amp; MORE</div>
+              </div>
+            </div>
+          </div>
+          <!-- end profile-wrapper -->
+        </div>
+      </div><!-- end profile-scale-container -->
+    </div><!-- end phone-scroll -->
+
+    <!-- ╔══════════════════════════════════════════════════╗
+         ║  COMPONENT · BOTTOM NAV BAR  (start)           ║
+         ║  Full reference → _components.html             ║
+         ╚══════════════════════════════════════════════════╝ -->
+    <!-- Fixed tab bar -->
+    <div class="tab-bar-fixed">
+      <div class="tab-bar-inner">
+        <div style="width: 1499px; height: 329px; position: relative">
+          <div style="width: 1499px; height: 329px; left: 0px; top: 0px; position: absolute; background: #182B49"></div>
+          <div style="left: 50%; top: 40px; position: absolute; transform: translateX(-50%); justify-content: center; align-items: flex-end; gap: 120px; display: inline-flex">
+
+            <!-- Home -->
+            <div style="width: 110px; height: 190px; position: relative; display:flex; flex-direction:column; align-items:center; gap:16px;">
+              <svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 54 L55 22 L92 54" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M28 46 L28 88 Q28 91 31 91 L44 91 L44 70 Q44 67 47 67 L63 67 Q66 67 66 70 L66 91 L79 91 Q82 91 82 88 L82 46" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <div style="text-align:center; color:rgba(255,255,255,0.75); font-size:35px; font-family:Source Sans Pro; font-weight:600;">Home</div>
+            </div>
+
+            <!-- Map -->
+            <div style="width: 110px; height: 190px; position: relative; display:flex; flex-direction:column; align-items:center; gap:16px;">
+              <svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M55 18 C38 18 24 32 24 49 C24 64 40 80 55 93 C70 80 86 64 86 49 C86 32 72 18 55 18 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="55" cy="49" r="12" stroke="rgba(255,255,255,0.75)" stroke-width="6"/>
+              </svg>
+              <div style="text-align:center; color:rgba(255,255,255,0.75); font-size:35px; font-family:Source Sans Pro; font-weight:600;">Map</div>
+            </div>
+
+            <!-- Center chat button -->
+            <div style="width: 200px; height: 200px; position: relative; flex-shrink:0;">
+              <!-- Outer navy halo -->
+              <div style="width: 282px; height: 282px; left: -41px; top: -41px; position: absolute; background: #182B49; border-radius: 9999px;"></div>
+              <!-- Yellow circle -->
+              <div style="width: 200px; height: 200px; left: 0; top: 0; position: absolute; background: #FFCD00; border-radius: 9999px; display:flex; align-items:center; justify-content:center;">
+                <!-- Chat bubble SVG (navy on yellow) -->
+                <svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 24 Q18 18 24 18 L86 18 Q92 18 92 24 L92 66 Q92 72 86 72 L42 72 L22 90 L22 72 L24 72 Q18 72 18 66 Z" stroke="#182B49" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  <circle cx="38" cy="45" r="6" fill="#182B49"/>
+                  <circle cx="55" cy="45" r="6" fill="#182B49"/>
+                  <circle cx="72" cy="45" r="6" fill="#182B49"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Rewards -->
+            <div style="width: 130px; height: 190px; position: relative; display:flex; flex-direction:column; align-items:center; gap:16px;">
+              <svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M55 14 L66 42 L96 42 L73 60 L82 88 L55 71 L28 88 L37 60 L14 42 L44 42 Z" stroke="rgba(255,255,255,0.75)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <div style="text-align:center; color:rgba(255,255,255,0.75); font-size:35px; font-family:Source Sans Pro; font-weight:600;">Rewards</div>
+            </div>
+
+            <!-- Profile -->
+            <div style="width: 110px; height: 190px; position: relative; display:flex; flex-direction:column; align-items:center; gap:16px;">
+              <svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="55" cy="36" r="20" stroke="white" stroke-width="6"/>
+                <path d="M18 92 C18 73 35 58 55 58 C75 58 92 73 92 92" stroke="white" stroke-width="6" stroke-linecap="round"/>
+              </svg>
+              <div style="text-align:center; color:white; font-size:35px; font-family:Source Sans Pro; font-weight:600;">Profile</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ╚══ END COMPONENT · BOTTOM NAV BAR ══╝ -->
+
+    <!-- ── OVERLAY 1: Upload Class Schedule (bottom sheet) ── -->
+    <div class="overlay-backdrop" id="overlay1">
+      <div class="sheet">
+        <div class="drag-handle"></div>
+        <div style="overflow: hidden; margin-bottom: 16px;">
+          <span class="overlay-close" onclick="closeAll()">✕</span>
+          <div class="overlay-title">Upload Class Schedule</div>
+        </div>
+        <div class="ai-hint">
+          <span class="ai-icon">✦</span>
+          <span class="ai-text">AI reads your schedule and turns it into time blocks automatically.</span>
+        </div>
+        <div class="upload-option" onclick="openReview()">
+          <div class="opt-icon">🔱</div>
+          <div class="opt-text">
+            <h3>Link to UC San Diego app</h3>
+            <p>Import the course schedule directly from the UC San Diego app</p>
+          </div>
+        </div>
+        <div class="upload-option" onclick="openReview()">
+          <div class="opt-icon">📁</div>
+          <div class="opt-text">
+            <h3>Upload from files</h3>
+            <p>Choose a screenshot or PDF screenshot from your phone</p>
+          </div>
+        </div>
+        <div class="upload-option" onclick="openReview()">
+          <div class="opt-icon">📷</div>
+          <div class="opt-text">
+            <h3>Take a photo</h3>
+            <p>Snap a picture of a printed schedule</p>
+          </div>
+        </div>
+        <div class="upload-option" onclick="openEdit()">
+          <div class="opt-icon">✏️</div>
+          <div class="opt-text">
+            <h3>Enter manually</h3>
+            <p>Type in your classes and times</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── OVERLAY 2: Review & Confirm (center modal) ── -->
+    <div class="overlay-backdrop center" id="overlay2">
+      <div class="modal">
+        <div style="overflow: hidden; margin-bottom: 14px;">
+          <span class="overlay-close" onclick="closeAll()">✕</span>
+          <div class="overlay-title">Review &amp; Confirm</div>
+        </div>
+        <div class="source-img-box">
+          <div class="source-img-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+            <span>Source Image</span>
+          </div>
+          <div class="source-img-preview">
+            <div style="display:flex; gap:3px; align-items:stretch; height:44px;">
+              <div style="width:6px; background:#3a5a8c; border-radius:2px; flex-shrink:0;"></div>
+              <div style="width:34px; background:#c8d0e0; border-radius:3px; display:flex; flex-direction:column; gap:2px; padding:3px; overflow:hidden;">
+                <div style="height:5px; background:#3a5a8c; border-radius:1px; opacity:0.7;"></div>
+                <div style="height:5px; background:#3a5a8c; border-radius:1px; opacity:0.7;"></div>
+                <div style="height:5px; background:#3a5a8c; border-radius:1px; opacity:0.7; width:60%;"></div>
+                <div style="height:4px;"></div>
+                <div style="height:5px; background:#5a7aac; border-radius:1px; opacity:0.6;"></div>
+                <div style="height:5px; background:#5a7aac; border-radius:1px; opacity:0.6; width:70%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="class-card">
+          <div class="class-name">COGS 107B</div>
+          <div class="class-detail"><span class="dot">📍</span> MOS 0114</div>
+          <div class="class-detail"><span class="dot">🕐</span> Th F @9:30 AM – 10:50 AM</div>
+        </div>
+        <div class="class-card">
+          <div class="class-name">MATH 171B</div>
+          <div class="class-detail"><span class="dot">📍</span> CENTR 113</div>
+          <div class="class-detail"><span class="dot">🕐</span> M W F @3:00 PM – 3:50 PM</div>
+        </div>
+        <div class="class-card">
+          <div class="class-name">COGS 187B</div>
+          <div class="class-detail"><span class="dot">📍</span> CSB 002</div>
+          <div class="class-detail"><span class="dot">🕐</span> Th F @2:00 PM – 3:20 PM</div>
+        </div>
+        <div class="class-card">
+          <div class="class-name">MUS 17</div>
+          <div class="class-detail"><span class="dot">📍</span> WLH 2001</div>
+          <div class="class-detail"><span class="dot">🕐</span> W @6:30 PM – 9:00 PM</div>
+        </div>
+
+        <div class="review-actions">
+          <button class="btn-outline" onclick="openEdit()">Edit</button>
+          <button class="btn-fill" onclick="closeAll()">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── OVERLAY 3: Edit Schedule (center modal, scrollable) ── -->
+    <div class="overlay-backdrop center" id="overlay3">
+      <div class="modal">
+        <div style="overflow: hidden; margin-bottom: 14px;">
+          <span class="overlay-close" onclick="closeAll()">✕</span>
+          <div class="overlay-title">Review &amp; Confirm</div>
+        </div>
+
+        <!-- CLASS 1 -->
+        <div class="class-section">
+          <div class="section-label">Class 1 &nbsp;<span style="float:right; cursor:pointer; color:#ccc;">🗑</span></div>
+          <div class="field-group"><div class="field-label">Class name</div><input class="field-input" value="COGS 107B"></div>
+          <div class="field-group"><div class="field-label">Location</div><input class="field-input" value="MOS 0114"></div>
+          <div class="field-label">Days</div>
+          <div class="days-row">
+            <span class="day-chip">Tue</span><span class="day-chip active">Tue</span><span class="day-chip">Wed</span><span class="day-chip active">Thu</span><span class="day-chip active">Fri</span><span class="day-chip">Sat</span><span class="day-chip">Sun</span>
+          </div>
+          <div class="time-row">
+            <div class="field-group"><div class="field-label">Start</div><input class="field-input" value="9:30 AM"></div>
+            <div class="field-group"><div class="field-label">End</div><input class="field-input" value="10:50 AM"></div>
+          </div>
+        </div>
+        <div class="edit-divider"></div>
+
+        <!-- CLASS 2 -->
+        <div class="class-section">
+          <div class="section-label">Class 2 &nbsp;<span style="float:right; cursor:pointer; color:#ccc;">🗑</span></div>
+          <div class="field-group"><div class="field-label">Class name</div><input class="field-input" value="MATH 171B"></div>
+          <div class="field-group"><div class="field-label">Location</div><input class="field-input" value="CENTR 113"></div>
+          <div class="field-label">Days</div>
+          <div class="days-row">
+            <span class="day-chip active">Mon</span><span class="day-chip">Tue</span><span class="day-chip active">Wed</span><span class="day-chip">Thu</span><span class="day-chip active">Fri</span><span class="day-chip">Sat</span><span class="day-chip">Sun</span>
+          </div>
+          <div class="time-row">
+            <div class="field-group"><div class="field-label">Start</div><input class="field-input" value="3:00 PM"></div>
+            <div class="field-group"><div class="field-label">End</div><input class="field-input" value="3:50 PM"></div>
+          </div>
+        </div>
+        <div class="edit-divider"></div>
+
+        <!-- CLASS 3 -->
+        <div class="class-section">
+          <div class="section-label">Class 3 &nbsp;<span style="float:right; cursor:pointer; color:#ccc;">🗑</span></div>
+          <div class="field-group"><div class="field-label">Class name</div><input class="field-input" value="COGS 187B"></div>
+          <div class="field-group"><div class="field-label">Location</div><input class="field-input" value="CSB 002"></div>
+          <div class="field-label">Days</div>
+          <div class="days-row">
+            <span class="day-chip">Tue</span><span class="day-chip active">Tue</span><span class="day-chip">Wed</span><span class="day-chip active">Thu</span><span class="day-chip active">Fri</span><span class="day-chip">Sat</span><span class="day-chip">Sun</span>
+          </div>
+          <div class="time-row">
+            <div class="field-group"><div class="field-label">Start</div><input class="field-input" value="2:00 PM"></div>
+            <div class="field-group"><div class="field-label">End</div><input class="field-input" value="3:20 PM"></div>
+          </div>
+        </div>
+        <div class="edit-divider"></div>
+
+        <!-- CLASS 4 -->
+        <div class="class-section">
+          <div class="section-label">Class 4 &nbsp;<span style="float:right; cursor:pointer; color:#ccc;">🗑</span></div>
+          <div class="field-group"><div class="field-label">Class name</div><input class="field-input" value="MUS 17"></div>
+          <div class="field-group"><div class="field-label">Location</div><input class="field-input" value="WLH 2001"></div>
+          <div class="field-label">Days</div>
+          <div class="days-row">
+            <span class="day-chip">Mon</span><span class="day-chip">Tue</span><span class="day-chip active">Wed</span><span class="day-chip">Thu</span><span class="day-chip">Fri</span><span class="day-chip">Sat</span><span class="day-chip">Sun</span>
+          </div>
+          <div class="time-row">
+            <div class="field-group"><div class="field-label">Start</div><input class="field-input" value="6:30 PM"></div>
+            <div class="field-group"><div class="field-label">End</div><input class="field-input" value="9:00 PM"></div>
+          </div>
+        </div>
+
+        <button class="confirm-btn-full" onclick="closeAll()">Confirm</button>
+      </div>
+    </div>
+
+  </div><!-- end screen-bezel -->
+</div><!-- end iphone -->
+
+<div class="right-spacer"></div>
+</div><!-- end page-layout -->
+
+<script>
+  // Start scrolled past the top navy gap so content appears higher
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('phoneScroll').scrollTop = 28;
+  });
+
+  function setStep(n) {
+    [1,2,3,4].forEach(i => {
+      document.getElementById('step'+i).classList.toggle('active', i === n);
+    });
+  }
+
+  function closeAll() {
+    document.getElementById('overlay1').classList.remove('active','center');
+    document.getElementById('overlay2').classList.remove('active','center');
+    document.getElementById('overlay3').classList.remove('active','center');
+    setStep(1);
+  }
+
+  function openUpload() {
+    closeAll();
+    const el = document.getElementById('overlay1');
+    el.classList.add('active');
+    setStep(2);
+    // Scroll profile so the card is roughly visible
+    document.getElementById('phoneScroll').scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function openReview() {
+    document.getElementById('overlay1').classList.remove('active');
+    const el = document.getElementById('overlay2');
+    el.classList.add('active','center');
+    setStep(3);
+  }
+
+  function openEdit() {
+    document.getElementById('overlay1').classList.remove('active');
+    document.getElementById('overlay2').classList.remove('active','center');
+    const el = document.getElementById('overlay3');
+    el.classList.add('active','center');
+    setStep(4);
+  }
+
+  // Click backdrop to close
+  ['overlay1','overlay2','overlay3'].forEach(id => {
+    document.getElementById(id).addEventListener('click', function(e) {
+      if (e.target === this) closeAll();
+    });
+  });
+</script>
+</body>
+</html>
